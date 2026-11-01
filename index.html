@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Тренажер Чартов v6 — Pro</title>
+<title>Тренажер Чартов v7 — Cloud Sync</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0f172a">
 <style>
@@ -12,7 +12,7 @@
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
     background: #0f172a; color: #f8fafc; min-height: 100vh;
     display: flex; justify-content: center; align-items: flex-start; padding: 15px 10px;
-    touch-action: manipulation; /* Убирает зум по двойному тапу на мобилках */
+    touch-action: manipulation;
   }
   .app {
     width: 100%; max-width: 540px; background: #1e293b; border-radius: 16px;
@@ -112,6 +112,11 @@
   .tools { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
   .tools button { flex: 1; min-width: 80px; padding: 8px; background: #334155; color: #cbd5e1; border: none; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; transition: background 0.15s; }
   .tools button:hover { background: #475569; }
+  
+  /* Sync Status Indicator */
+  .sync-status { font-size: 10px; text-align: center; margin-top: 10px; color: #64748b; }
+  .sync-status.ok { color: #10b981; }
+  .sync-status.err { color: #ef4444; }
 
   /* Modals */
   .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; padding: 15px; z-index: 1000; overflow-y: auto; }
@@ -132,7 +137,7 @@
   .modal-actions .danger { background: #ef4444; color: white; }
   .modal-actions .secondary { background: #334155; color: #cbd5e1; }
 
-  /* Editor Specific */
+  /* Editor & Sync Inputs */
   .editor-tabs { display: flex; gap: 4px; margin-bottom: 12px; background: #0f172a; padding: 4px; border-radius: 8px; }
   .editor-tabs button { flex: 1; padding: 8px; border: none; background: transparent; color: #94a3b8; font-weight: 600; border-radius: 6px; cursor: pointer; font-size: 12px; }
   .editor-tabs button.active { background: #3b82f6; color: white; }
@@ -160,16 +165,17 @@
   .editor-cell.in-raise { background: #10b981; color: white; border-color: #10b981; }
   .editor-cell.in-3bet { background: #8b5cf6; color: white; border-color: #8b5cf6; }
   .editor-cell.in-call { background: #f59e0b; color: white; border-color: #f59e0b; }
-  
-  /* Stats Chart */
-  .chart-container { width: 100%; height: 150px; margin-top: 10px; margin-bottom: 20px; background: #0f172a; border-radius: 8px; padding: 10px; }
+
+  .form-group { margin-bottom: 12px; }
+  .form-group label { display: block; font-size: 12px; color: #94a3b8; margin-bottom: 4px; }
+  .form-group input { width: 100%; padding: 10px; background: #0f172a; color: #f8fafc; border: 1px solid #334155; border-radius: 6px; font-size: 13px; }
 </style>
 </head>
 <body>
 
 <div class="app">
-  <h1>🃏 Тренажер Чартов v6</h1>
-  <div class="subtitle">SRS · Speed Drill · PWA · Графики</div>
+  <h1>🃏 Тренажер Чартов v7</h1>
+  <div class="subtitle">Cloud Sync · PWA · SRS</div>
 
   <div class="profile-bar">
     <select id="profile-selector" onchange="changeProfile(this.value)"></select>
@@ -193,18 +199,10 @@
   </div>
 
   <div class="filter-row">
-    <select id="spot-filter">
-      <option value="all">Все позиции</option>
-    </select>
-    <label class="toggle-wrapper">
-      <input type="checkbox" id="hard-mode"> Hard Mode
-    </label>
-    <label class="toggle-wrapper">
-      <input type="checkbox" id="srs-mode" checked> SRS
-    </label>
-    <label class="toggle-wrapper">
-      <input type="checkbox" id="speed-mode"> Speed (60s)
-    </label>
+    <select id="spot-filter"><option value="all">Все позиции</option></select>
+    <label class="toggle-wrapper"><input type="checkbox" id="hard-mode"> Hard Mode</label>
+    <label class="toggle-wrapper"><input type="checkbox" id="srs-mode" checked> SRS</label>
+    <label class="toggle-wrapper"><input type="checkbox" id="speed-mode"> Speed</label>
   </div>
 
   <div class="score-bar">
@@ -240,11 +238,13 @@
 
   <div class="tools">
     <button onclick="showStats()">📊 Статистика</button>
+    <button onclick="openSyncModal()">☁️ Синхронизация</button>
     <button onclick="exportAll()">💾 Экспорт</button>
     <button onclick="document.getElementById('import-file').click()">📂 Импорт</button>
-    <button onclick="resetStats()">🔄 Сброс</button>
   </div>
   <input type="file" id="import-file" accept="application/json,.json" style="display:none" onchange="importAll(event)">
+  
+  <div class="sync-status" id="sync-status">Облако не подключено</div>
 </div>
 
 <!-- Modals -->
@@ -265,6 +265,29 @@
     <div id="stats-content"></div>
     <div class="modal-actions">
       <button class="secondary" onclick="document.getElementById('stats-modal').classList.remove('open')">Закрыть</button>
+    </div>
+  </div>
+</div>
+
+<!-- Sync Modal -->
+<div class="modal" id="sync-modal">
+  <div class="modal-content">
+    <h2>☁️ Синхронизация с облаком</h2>
+    <p style="font-size: 12px; color: #94a3b8; margin-bottom: 16px;">Вставь Bin ID и API Key из твоего аккаунта JSONBin.io. Данные будут сохраняться в облаке и подтягиваться на всех устройствах.</p>
+    
+    <div class="form-group">
+      <label>Bin ID</label>
+      <input type="text" id="sync-bin-id" placeholder="65f1a...">
+    </div>
+    <div class="form-group">
+      <label>X-Master-Key</label>
+      <input type="password" id="sync-api-key" placeholder="$2b$10$...">
+    </div>
+    
+    <div class="modal-actions" style="margin-top: 20px;">
+      <button class="danger" onclick="disconnectSync()">Отключить</button>
+      <button class="secondary" onclick="document.getElementById('sync-modal').classList.remove('open')">Отмена</button>
+      <button class="primary" onclick="connectSync()">Подключить</button>
     </div>
   </div>
 </div>
@@ -340,14 +363,145 @@ const CHARTS_KEY = 'chartTrainerData';
 const STATS_KEY = 'chartTrainerV6';
 const MISTAKES_KEY = 'chartTrainerMistakes';
 const HISTORY_KEY = 'chartTrainerHistory';
+const SYNC_KEY = 'chartTrainerSyncConfig';
 
 let profiles = {};
 let activeProfileName = '';
 let stats = { correct: 0, total: 0, streak: 0, bestStreak: 0, byMode: { rfi: { t: 0, c: 0 }, '3bet': { t: 0, c: 0 }, bb: { t: 0, c: 0 } }, byKey: {} };
 let sessionHistory = [];
 let mistakes = {};
+let syncConfig = { binId: '', apiKey: '' };
+let isSyncing = false;
+let syncTimeout = null;
 
-function loadData() {
+// ============ SYNC LOGIC ============
+function initSync() {
+  const saved = localStorage.getItem(SYNC_KEY);
+  if (saved) {
+    try { syncConfig = JSON.parse(saved); } catch(e){}
+  }
+  updateSyncUI();
+  if (syncConfig.binId && syncConfig.apiKey) {
+    pullFromCloud();
+  }
+}
+
+function updateSyncUI() {
+  const el = document.getElementById('sync-status');
+  if (syncConfig.binId && syncConfig.apiKey) {
+    el.textContent = '☁️ Облако подключено';
+    el.className = 'sync-status ok';
+  } else {
+    el.textContent = 'Облако не подключено (только локально)';
+    el.className = 'sync-status';
+  }
+}
+
+function openSyncModal() {
+  document.getElementById('sync-bin-id').value = syncConfig.binId || '';
+  document.getElementById('sync-api-key').value = syncConfig.apiKey || '';
+  document.getElementById('sync-modal').classList.add('open');
+}
+
+function connectSync() {
+  const binId = document.getElementById('sync-bin-id').value.trim();
+  const apiKey = document.getElementById('sync-api-key').value.trim();
+  if (!binId || !apiKey) return alert('Заполните оба поля!');
+  
+  syncConfig = { binId, apiKey };
+  localStorage.setItem(SYNC_KEY, JSON.stringify(syncConfig));
+  updateSyncUI();
+  document.getElementById('sync-modal').classList.remove('open');
+  
+  // Отправляем локальные данные в облако при первом подключении
+  pushToCloud(true);
+}
+
+function disconnectSync() {
+  if (!confirm('Отключить синхронизацию?')) return;
+  syncConfig = { binId: '', apiKey: '' };
+  localStorage.removeItem(SYNC_KEY);
+  updateSyncUI();
+  document.getElementById('sync-modal').classList.remove('open');
+}
+
+async function pullFromCloud() {
+  if (!syncConfig.binId || !syncConfig.apiKey || isSyncing) return;
+  isSyncing = true;
+  document.getElementById('sync-status').textContent = '☁️ Загрузка...';
+  
+  try {
+    const res = await fetch(`https://api.jsonbin.io/v3/b/${syncConfig.binId}/latest`, {
+      headers: { 'X-Master-Key': syncConfig.apiKey }
+    });
+    if (!res.ok) throw new Error('Ошибка сети');
+    const json = await res.json();
+    
+    if (json.record && Object.keys(json.record).length > 0) {
+      // Применяем данные
+      if (json.record.profiles) profiles = json.record.profiles;
+      if (json.record.activeProfileName) activeProfileName = json.record.activeProfileName;
+      if (json.record.stats) stats = json.record.stats;
+      if (json.record.mistakes) mistakes = json.record.mistakes;
+      if (json.record.sessionHistory) sessionHistory = json.record.sessionHistory;
+      
+      saveLocally();
+      renderProfileSelector();
+      initRanges();
+      updateSpotFilter();
+      updateScoreDisplay();
+      nextQuestion();
+    }
+    document.getElementById('sync-status').textContent = '☁️ Синхронизировано';
+  } catch (err) {
+    console.error(err);
+    document.getElementById('sync-status').textContent = '⚠️ Ошибка загрузки';
+    document.getElementById('sync-status').className = 'sync-status err';
+  } finally {
+    isSyncing = false;
+  }
+}
+
+async function pushToCloud(force = false) {
+  if (!syncConfig.binId || !syncConfig.apiKey || isSyncing) return;
+  isSyncing = true;
+  if (force) document.getElementById('sync-status').textContent = '☁️ Отправка...';
+
+  const payload = {
+    profiles, activeProfileName, stats, mistakes, sessionHistory
+  };
+
+  try {
+    const res = await fetch(`https://api.jsonbin.io/v3/b/${syncConfig.binId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Master-Key': syncConfig.apiKey
+      },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error('Ошибка отправки');
+    
+    document.getElementById('sync-status').textContent = '☁️ Сохранено в облако';
+    document.getElementById('sync-status').className = 'sync-status ok';
+  } catch (err) {
+    console.error(err);
+    document.getElementById('sync-status').textContent = '⚠️ Ошибка сохранения';
+    document.getElementById('sync-status').className = 'sync-status err';
+  } finally {
+    isSyncing = false;
+  }
+}
+
+function triggerSync() {
+  if (syncConfig.binId && syncConfig.apiKey) {
+    if (syncTimeout) clearTimeout(syncTimeout);
+    syncTimeout = setTimeout(() => pushToCloud(), 2000); // Дебаунс 2 секунды
+  }
+}
+
+// ============ LOCAL STORAGE ============
+function loadLocalData() {
   try {
     const savedProfiles = localStorage.getItem(CHARTS_KEY);
     if (savedProfiles) profiles = JSON.parse(savedProfiles);
@@ -363,15 +517,15 @@ function loadData() {
     const savedHistory = localStorage.getItem(HISTORY_KEY);
     if (savedHistory) sessionHistory = JSON.parse(savedHistory);
   } catch(e) {}
-  saveAll();
   renderProfileSelector();
 }
 
-function saveAll() {
+function saveLocally() {
   localStorage.setItem(CHARTS_KEY, JSON.stringify(profiles));
   localStorage.setItem(STATS_KEY, JSON.stringify(stats));
   localStorage.setItem(MISTAKES_KEY, JSON.stringify(mistakes));
   localStorage.setItem(HISTORY_KEY, JSON.stringify(sessionHistory));
+  triggerSync(); // Вызываем облачную синхронизацию
 }
 
 // ============ RANGE EXPANDER ============
@@ -394,7 +548,6 @@ function expandRange(rangeStr) {
     if (!match) return;
     const [, r1, r2, suit] = match;
     const i1 = ranks.indexOf(r1), i2 = ranks.indexOf(r2);
-
     if (r1 === r2) {
       if (plus) { for (let i = i1; i >= 0; i--) hands.add(ranks[i] + ranks[i]); }
       else { hands.add(r1 + r2); }
@@ -530,13 +683,11 @@ function nextQuestion() {
     rangeSet = BB_RANGES[position]['3bet'];
   }
 
-  // SRS & Hard Mode Hand Selection
   let hand;
   const mistakeKeyPrefix = `${type}_${position}_`;
   const pool = Object.keys(mistakes).filter(k => k.startsWith(mistakeKeyPrefix) && mistakes[k] > 0);
   
   if (srsMode && pool.length > 0 && Math.random() < 0.4) {
-    // 40% шанс выбрать руку из пула ошибок
     const pickedKey = pickRandom(pool);
     hand = pickedKey.replace(mistakeKeyPrefix, '');
   } else if (hardMode) {
@@ -546,7 +697,6 @@ function nextQuestion() {
     hand = pickRandom(ALL_HANDS);
   }
 
-  // Заполнение UI
   if (type === 'rfi') {
     const isRaise = rangeSet.has(hand);
     currentQ = { type, position, hand, isRaise };
@@ -622,7 +772,7 @@ function answer(action) {
   const key = currentQ.type + '_' + currentQ.position;
   if (!stats.byKey[key]) stats.byKey[key] = { t: 0, c: 0 };
   stats.byKey[key].t++; if (correct) stats.byKey[key].c++;
-  saveAll();
+  saveLocally();
 
   const fb = document.getElementById('feedback');
   fb.classList.remove('hidden');
@@ -740,11 +890,10 @@ function showSessionSummary(isSpeed = false) {
   
   if (total > 0) {
     sessionHistory.push({ date: new Date().toISOString(), acc, total });
-    if (sessionHistory.length > 10) sessionHistory.shift(); // Храним последние 10
-    saveAll();
+    if (sessionHistory.length > 10) sessionHistory.shift();
+    saveLocally();
   }
 
-  const typeNames = { rfi: 'RFI', '3bet': '3-Bet', bb: 'BB Defense' };
   let html = `<div class="stat-row"><span class="label">Точность</span><span class="val ${acc >= 80 ? 'good' : acc >= 60 ? 'mid' : 'bad'}">${acc}%</span></div>`;
   if (isSpeed) html = `<div class="stat-row"><span class="label">Режим Speed Drill</span><span class="val">60 секунд</span></div>` + html;
   html += `<div class="stat-row"><span class="label">Правильно</span><span class="val">${correct} / ${total}</span></div>`;
@@ -765,8 +914,6 @@ function newSession() { document.getElementById('session-modal').classList.remov
 function showStats() {
   const acc = stats.total > 0 ? Math.round(stats.correct / stats.total * 100) : 0;
   const typeNames = { rfi: 'RFI', '3bet': '3-Bet', bb: 'BB Defense' };
-  
-  // Слабые места
   const sortedKeys = Object.keys(stats.byKey).filter(k => stats.byKey[k].t >= 5).sort((a,b) => {
     const accA = stats.byKey[a].c / stats.byKey[a].t;
     const accB = stats.byKey[b].c / stats.byKey[b].t;
@@ -799,7 +946,7 @@ function showStats() {
 
   document.getElementById('stats-content').innerHTML = html;
   document.getElementById('stats-modal').classList.add('open');
-  setTimeout(drawChart, 50); // Ждем отрисовки DOM
+  setTimeout(drawChart, 50);
 }
 
 function drawChart() {
@@ -808,23 +955,17 @@ function drawChart() {
   const ctx = canvas.getContext('2d');
   const w = canvas.width, h = canvas.height;
   ctx.clearRect(0, 0, w, h);
-
-  const data = sessionHistory.slice(-7); // Последние 7 сессий
+  const data = sessionHistory.slice(-7);
   if (data.length < 2) {
     ctx.fillStyle = '#64748b'; ctx.font = '14px sans-serif'; ctx.textAlign = 'center';
     ctx.fillText('Нужно сыграть минимум 2 сессии', w/2, h/2);
     return;
   }
-
   const padding = 20, graphW = w - padding * 2, graphH = h - padding * 2;
   const stepX = graphW / (data.length - 1);
-
-  // Ось Y (0-100%)
   ctx.strokeStyle = '#334155'; ctx.lineWidth = 1;
   ctx.beginPath(); ctx.moveTo(padding, padding); ctx.lineTo(padding, h - padding); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(padding, h - padding); ctx.lineTo(w - padding, h - padding); ctx.stroke();
-
-  // Линия графика
   ctx.strokeStyle = '#10b981'; ctx.lineWidth = 3; ctx.lineJoin = 'round';
   ctx.beginPath();
   data.forEach((d, i) => {
@@ -833,15 +974,11 @@ function drawChart() {
     if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
   });
   ctx.stroke();
-
-  // Точки
   ctx.fillStyle = '#10b981';
   data.forEach((d, i) => {
     const x = padding + i * stepX;
     const y = h - padding - (d.acc / 100) * graphH;
     ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2); ctx.fill();
-    
-    // Подпись процента
     ctx.fillStyle = '#f1f5f9'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center';
     ctx.fillText(d.acc + '%', x, y - 8);
   });
@@ -949,6 +1086,9 @@ function setBrush(brush, btn) {
   btn.classList.add('active');
 }
 
+let isDrawing = false;
+window.addEventListener('pointerup', () => { isDrawing = false; });
+
 function renderEditorGrid() {
   const grid = document.getElementById('editor-grid');
   grid.innerHTML = '';
@@ -969,19 +1109,12 @@ function renderEditorGrid() {
       const cell = document.createElement('div');
       cell.className = `editor-cell ${cls} ${actionCls}`;
       cell.textContent = handStr;
-      
-      // Mobile Swipe Logic
       cell.onpointerdown = (e) => { e.preventDefault(); isDrawing = true; toggleEditorCell(handStr); };
       cell.onpointerenter = (e) => { if (isDrawing) toggleEditorCell(handStr); };
-      
       grid.appendChild(cell);
     }
   }
 }
-
-// Глобальный флаг для рисования
-let isDrawing = false;
-window.addEventListener('pointerup', () => { isDrawing = false; });
 
 function toggleEditorCell(handStr) {
   if (currentEditorTab === 'rfi') {
@@ -998,7 +1131,6 @@ function toggleEditorCell(handStr) {
     else if (currentBrush === 'call') { data['call'].has(handStr) ? data['call'].delete(handStr) : (data['call'].add(handStr), data['3bet'].delete(handStr)); }
     else if (currentBrush === 'fold') { data['3bet'].delete(handStr); data['call'].delete(handStr); }
   }
-  // Обновляем только нужную клетку для скорости
   const idx = Array.from(document.getElementById('editor-grid').children).findIndex(c => c.textContent === handStr);
   if (idx !== -1) {
     const cell = document.getElementById('editor-grid').children[idx];
@@ -1028,7 +1160,7 @@ function saveProfile() {
   if (editorOriginalName && newName !== editorOriginalName) delete profiles[editorOriginalName];
   profiles[newName] = newProfile; activeProfileName = newName; editorOriginalName = newName;
 
-  saveAll(); renderProfileSelector(); initRanges(); updateSpotFilter();
+  saveLocally(); renderProfileSelector(); initRanges(); updateSpotFilter();
   document.getElementById('editor-modal').classList.remove('open');
   session = { questions: [] }; updateScoreDisplay(); nextQuestion();
 }
@@ -1038,7 +1170,7 @@ function deleteProfile() {
   if (confirm('Удалить текущую базу?')) {
     delete profiles[activeProfileName];
     activeProfileName = Object.keys(profiles)[0];
-    saveAll(); renderProfileSelector(); initRanges(); updateSpotFilter();
+    saveLocally(); renderProfileSelector(); initRanges(); updateSpotFilter();
     document.getElementById('editor-modal').classList.remove('open');
     session = { questions: [] }; updateScoreDisplay(); nextQuestion();
   }
@@ -1046,7 +1178,7 @@ function deleteProfile() {
 
 // ============ EXPORT / IMPORT / RESET ============
 function exportAll() {
-  const payload = { app: 'chart-trainer', version: 'v6', exportedAt: new Date().toISOString(), profiles, activeProfileName, stats, mistakes, sessionHistory };
+  const payload = { app: 'chart-trainer', version: 'v7', exportedAt: new Date().toISOString(), profiles, activeProfileName, stats, mistakes, sessionHistory };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob); const d = new Date(); const pad = n => String(n).padStart(2, '0');
   const a = document.createElement('a'); a.href = url; a.download = `trainer_backup_${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}.json`;
@@ -1065,7 +1197,7 @@ function importAll(event) {
         if (parsed.stats) stats = Object.assign(stats, parsed.stats);
         if (parsed.mistakes) mistakes = parsed.mistakes;
         if (parsed.sessionHistory) sessionHistory = parsed.sessionHistory;
-        saveAll(); renderProfileSelector(); initRanges(); updateSpotFilter();
+        saveLocally(); renderProfileSelector(); initRanges(); updateSpotFilter();
         session = { questions: [] }; updateScoreDisplay(); nextQuestion();
         alert('Данные успешно импортированы.');
       } else throw new Error('Неверный формат');
@@ -1073,13 +1205,6 @@ function importAll(event) {
     finally { event.target.value = ''; }
   };
   reader.readAsText(file);
-}
-
-function resetStats() {
-  if (!confirm('Сбросить статистику и SRS-ошибки? Базы не пострадают.')) return;
-  stats = { correct: 0, total: 0, streak: 0, bestStreak: stats.bestStreak, byMode: { rfi: {t:0,c:0}, '3bet': {t:0,c:0}, bb: {t:0,c:0} }, byKey: {} };
-  mistakes = {}; sessionHistory = [];
-  saveAll(); session = { questions: [] }; updateScoreDisplay(); nextQuestion();
 }
 
 // ============ INIT ============
@@ -1094,7 +1219,7 @@ function renderProfileSelector() {
 }
 
 function changeProfile(name) {
-  activeProfileName = name; saveAll(); initRanges(); updateSpotFilter();
+  activeProfileName = name; saveLocally(); initRanges(); updateSpotFilter();
   session = { questions: [] }; updateScoreDisplay(); nextQuestion();
 }
 
@@ -1111,13 +1236,12 @@ document.getElementById('hard-mode').addEventListener('change', (e) => { hardMod
 document.getElementById('srs-mode').addEventListener('change', (e) => { srsMode = e.target.checked; nextQuestion(); });
 document.getElementById('speed-mode').addEventListener('change', (e) => { speedMode = e.target.checked; session = { questions: [] }; nextQuestion(); });
 
-// PWA Registration
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(err => console.log('SW registration failed:', err));
 }
 
-// Start
-loadData(); initRanges(); updateSpotFilter(); updateScoreDisplay(); nextQuestion();
+// Запуск
+loadLocalData(); initSync(); initRanges(); updateSpotFilter(); updateScoreDisplay(); nextQuestion();
 </script>
 </body>
 </html>
