@@ -1,0 +1,16 @@
+{
+  "name": "NLH Chart Trainer",
+  "short_name": "Trainer",
+  "start_url": "./chart_trainer_v6.html",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "description": "Тренажер префлоп чартов для NLH",
+  "icons": [
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzFmMjkzNyIgcng9IjIwIi8+PHBhdGggZD0iTTMwIDMwIEw3MCAzMCBMNzAgNzAgTDMwIDcwIFoiIGZpbGw9IiMzYjgyZjYiLz48L3N2Zz4=",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    }
+  ]
+}

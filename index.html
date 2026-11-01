@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Тренажер Чартов v6 — Pro</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f172a">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    background: #0f172a; color: #f8fafc; min-height: 100vh;
+    display: flex; justify-content: center; align-items: flex-start; padding: 15px 10px;
+    touch-action: manipulation; /* Убирает зум по двойному тапу на мобилках */
+  }
+  .app {
+    width: 100%; max-width: 540px; background: #1e293b; border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5); padding: 20px;
+  }
+  h1 { font-size: 18px; font-weight: 700; text-align: center; margin-bottom: 4px; }
+  .subtitle { font-size: 11px; text-align: center; color: #94a3b8; margin-bottom: 16px; }
+
+  /* Profile Selector */
+  .profile-bar { display: flex; gap: 6px; margin-bottom: 12px; align-items: stretch; }
+  .profile-bar select {
+    flex: 1; padding: 10px; background: #0f172a; color: #f8fafc; border: 2px solid #3b82f6;
+    border-radius: 8px; font-size: 14px; font-weight: 700; outline: none; cursor: pointer; min-width: 0;
+  }
+  .btn-icon {
+    background: #3b82f6; color: white; border: none; border-radius: 8px; padding: 10px 14px;
+    font-size: 13px; font-weight: 700; cursor: pointer; transition: background 0.15s;
+    display: flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap;
+  }
+  .btn-icon:hover { background: #2563eb; }
+  .btn-icon.secondary { background: #475569; }
+  .btn-icon.secondary:hover { background: #334155; }
+  .btn-icon svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 2.5; fill: none; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+  @media (max-width: 420px) { .btn-text { display: none; } .btn-icon { padding: 10px 12px; } }
+
+  /* Controls Row */
+  .controls { display: flex; gap: 8px; margin-bottom: 12px; align-items: stretch; }
+  .modes { display: flex; gap: 4px; background: #0f172a; padding: 4px; border-radius: 8px; flex: 1; }
+  .modes button { flex: 1; padding: 8px 4px; border: none; background: transparent; color: #94a3b8; font-weight: 600; font-size: 12px; border-radius: 6px; cursor: pointer; transition: all 0.15s; }
+  .modes button.active { background: #3b82f6; color: white; }
+  .modes button:hover:not(.active) { background: #1e293b; color: #f1f5f9; }
+
+  .filter-row { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; flex-wrap: wrap; }
+  .filter-row select { flex: 1; padding: 8px; background: #0f172a; color: #f8fafc; border: 1px solid #334155; border-radius: 6px; font-size: 12px; outline: none; cursor: pointer; min-width: 100px; }
+  .toggle-wrapper { display: flex; align-items: center; gap: 6px; background: #0f172a; padding: 8px 10px; border-radius: 6px; border: 1px solid #334155; font-size: 12px; cursor: pointer; white-space: nowrap; }
+  .toggle-wrapper input { cursor: pointer; }
+
+  /* Score bar */
+  .score-bar { display: flex; justify-content: space-between; font-size: 12px; color: #94a3b8; margin-bottom: 12px; padding: 8px 12px; background: #0f172a; border-radius: 6px; flex-wrap: wrap; gap: 8px; }
+  .score-bar span strong { color: #f1f5f9; font-size: 14px; }
+  .score-bar .session-progress { color: #60a5fa; }
+  .timer-display { color: #f59e0b; font-weight: bold; display: none; }
+  .timer-display.active { display: inline; }
+
+  /* Question card */
+  .question-card { background: #0f172a; border-radius: 12px; padding: 16px; text-align: center; margin-bottom: 14px; border: 1px solid #334155; min-height: 180px; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; }
+  .situation { font-size: 12px; color: #94a3b8; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .situation strong { color: #60a5fa; }
+  .hand-display { display: flex; gap: 12px; justify-content: center; margin-bottom: 12px; min-height: 100px; align-items: center; }
+  
+  /* Solid 4-Color Cards */
+  .playing-card { display: flex; flex-direction: column; justify-content: center; align-items: center; width: 76px; height: 110px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.4), inset 0 0 0 2px rgba(255,255,255,0.1); color: #ffffff; font-family: "Georgia", serif; user-select: none; position: relative; overflow: hidden; }
+  .card-rank { font-size: 38px; font-weight: 800; line-height: 1; text-shadow: 0 2px 4px rgba(0,0,0,0.3); margin-bottom: 2px; }
+  .card-suit { font-size: 34px; line-height: 1; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+  .playing-card.spades { background: #1e293b; border: 1px solid #475569; }
+  .playing-card.hearts { background: #ef4444; border: 1px solid #fca5a5; }
+  .playing-card.diamonds { background: #3b82f6; border: 1px solid #93c5fd; }
+  .playing-card.clubs { background: #22c55e; border: 1px solid #86efac; }
+
+  .range-hint { font-size: 12px; color: #64748b; font-style: italic; margin-top: 8px; }
+
+  .action-buttons { display: flex; gap: 6px; margin-bottom: 10px; }
+  .action-buttons button { flex: 1; padding: 14px 4px; border: none; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s; text-transform: uppercase; letter-spacing: 0.5px; }
+  .btn-fold { background: #475569; color: white; }
+  .btn-call { background: #f59e0b; color: white; }
+  .btn-raise { background: #10b981; color: white; }
+  .btn-3bet { background: #8b5cf6; color: white; }
+  .btn-skip { background: #334155; color: #cbd5e1; flex: 0.6; }
+  .btn-hint { background: #1e293b; color: #60a5fa; border: 1px solid #3b82f6; flex: 0.6; }
+  .action-buttons button:disabled { opacity: 0.4; cursor: not-allowed; }
+  .action-buttons button:hover:not(:disabled) { filter: brightness(1.2); }
+
+  .feedback { padding: 10px; border-radius: 8px; text-align: center; font-weight: 600; font-size: 14px; margin-bottom: 12px; min-height: 40px; display: flex; align-items: center; justify-content: center; }
+  .feedback.correct { background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); }
+  .feedback.wrong { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
+  .feedback.skip { background: rgba(148,163,184,0.15); color: #94a3b8; border: 1px solid rgba(148,163,184,0.3); }
+  .feedback.hidden { visibility: hidden; }
+
+  .grid-wrap { margin-bottom: 12px; }
+  .grid { display: grid; grid-template-columns: repeat(13, 1fr); gap: 2px; margin-bottom: 8px; }
+  .grid-cell { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 7.5px; font-weight: 700; border-radius: 2px; color: #64748b; overflow: hidden; line-height: 1; }
+  .grid-cell.pair { background: rgba(148,163,184,0.12); }
+  .grid-cell.suited { background: rgba(148,163,184,0.06); }
+  .grid-cell.offsuit { background: rgba(148,163,184,0.03); }
+  .grid-cell.in-raise { background: #10b981; color: white; }
+  .grid-cell.in-3bet { background: #8b5cf6; color: white; }
+  .grid-cell.in-call { background: #f59e0b; color: white; }
+  .grid-cell.current { box-shadow: 0 0 0 2px #f1f5f9 inset; z-index: 2; }
+  
+  .grid-legend { display: flex; gap: 10px; font-size: 10px; color: #94a3b8; flex-wrap: wrap; justify-content: center; }
+  .grid-legend .dot { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
+
+  .next-btn { width: 100%; padding: 14px; background: #3b82f6; color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 700; cursor: pointer; transition: background 0.15s; margin-bottom: 12px; }
+  .next-btn:hover { background: #2563eb; }
+  .next-btn.hidden { display: none; }
+
+  .tools { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+  .tools button { flex: 1; min-width: 80px; padding: 8px; background: #334155; color: #cbd5e1; border: none; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+  .tools button:hover { background: #475569; }
+
+  /* Modals */
+  .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; padding: 15px; z-index: 1000; overflow-y: auto; }
+  .modal.open { display: flex; }
+  .modal-content { background: #1e293b; border-radius: 12px; padding: 20px; max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.6); }
+  .modal-content h2 { font-size: 17px; margin-bottom: 14px; color: #f1f5f9; }
+  .modal-content h3 { font-size: 13px; margin-top: 16px; margin-bottom: 8px; color: #60a5fa; text-transform: uppercase; letter-spacing: 0.5px; }
+  .stat-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; border-bottom: 1px solid #334155; }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-row .label { color: #94a3b8; }
+  .stat-row .val { color: #f1f5f9; font-weight: 600; }
+  .stat-row .val.good { color: #10b981; }
+  .stat-row .val.bad { color: #f87171; }
+  .stat-row .val.mid { color: #f59e0b; }
+  .modal-actions { display: flex; gap: 8px; margin-top: 20px; }
+  .modal-actions button { flex: 1; padding: 12px; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 13px; }
+  .modal-actions .primary { background: #3b82f6; color: white; }
+  .modal-actions .danger { background: #ef4444; color: white; }
+  .modal-actions .secondary { background: #334155; color: #cbd5e1; }
+
+  /* Editor Specific */
+  .editor-tabs { display: flex; gap: 4px; margin-bottom: 12px; background: #0f172a; padding: 4px; border-radius: 8px; }
+  .editor-tabs button { flex: 1; padding: 8px; border: none; background: transparent; color: #94a3b8; font-weight: 600; border-radius: 6px; cursor: pointer; font-size: 12px; }
+  .editor-tabs button.active { background: #3b82f6; color: white; }
+  
+  .editor-toolbar { display: flex; gap: 8px; margin-bottom: 12px; align-items: stretch; flex-wrap: wrap; }
+  .editor-toolbar input[type="text"] { flex: 1; padding: 8px 12px; background: #0f172a; color: #f8fafc; border: 1px solid #334155; border-radius: 6px; font-size: 13px; min-width: 150px; }
+  .editor-toolbar select { flex: 1; padding: 8px; background: #0f172a; color: #f8fafc; border: 1px solid #334155; border-radius: 6px; font-size: 12px; outline: none; min-width: 100px; }
+  
+  .import-row { display: flex; gap: 6px; margin-bottom: 12px; width: 100%; }
+  .import-row input { flex: 1; padding: 8px; background: #0f172a; color: #f8fafc; border: 1px solid #334155; border-radius: 6px; font-size: 12px; font-family: monospace; }
+  .import-row button { padding: 8px 12px; background: #3b82f6; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px; }
+
+  .brush-buttons { display: flex; gap: 6px; margin-bottom: 12px; }
+  .brush-btn { flex: 1; padding: 10px; border: 2px solid transparent; border-radius: 8px; font-weight: 700; font-size: 12px; cursor: pointer; transition: all 0.15s; }
+  .brush-btn[data-action="fold"] { background: #334155; color: #cbd5e1; }
+  .brush-btn[data-action="call"] { background: rgba(245, 158, 11, 0.2); color: #f59e0b; border-color: rgba(245, 158, 11, 0.3); }
+  .brush-btn[data-action="raise"], .brush-btn[data-action="3bet"] { background: rgba(139, 92, 246, 0.2); color: #a78bfa; border-color: rgba(139, 92, 246, 0.3); }
+  .brush-btn.active[data-action="fold"] { border-color: #f1f5f9; background: #475569; color: white; }
+  .brush-btn.active[data-action="call"] { background: #f59e0b; color: white; border-color: #f59e0b; }
+  .brush-btn.active[data-action="raise"], .brush-btn.active[data-action="3bet"] { background: #8b5cf6; color: white; border-color: #8b5cf6; }
+
+  .editor-grid { display: grid; grid-template-columns: repeat(13, 1fr); gap: 3px; margin-bottom: 12px; user-select: none; touch-action: none; }
+  .editor-cell { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: 700; border-radius: 3px; cursor: pointer; color: #64748b; background: #0f172a; border: 1px solid #1e293b; transition: all 0.1s; }
+  .editor-cell.pair { background: #1e293b; }
+  .editor-cell.in-raise { background: #10b981; color: white; border-color: #10b981; }
+  .editor-cell.in-3bet { background: #8b5cf6; color: white; border-color: #8b5cf6; }
+  .editor-cell.in-call { background: #f59e0b; color: white; border-color: #f59e0b; }
+  
+  /* Stats Chart */
+  .chart-container { width: 100%; height: 150px; margin-top: 10px; margin-bottom: 20px; background: #0f172a; border-radius: 8px; padding: 10px; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <h1>🃏 Тренажер Чартов v6</h1>
+  <div class="subtitle">SRS · Speed Drill · PWA · Графики</div>
+
+  <div class="profile-bar">
+    <select id="profile-selector" onchange="changeProfile(this.value)"></select>
+    <button class="btn-icon" onclick="openEditor(true)" title="Создать новую базу">
+      <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      <span class="btn-text">Создать</span>
+    </button>
+    <button class="btn-icon secondary" onclick="openEditor(false)" title="Редактировать текущую">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+      <span class="btn-text">Редактор</span>
+    </button>
+  </div>
+
+  <div class="controls">
+    <div class="modes">
+      <button data-mode="rfi" class="active">RFI</button>
+      <button data-mode="3bet">3-Bet</button>
+      <button data-mode="bb">BB Def</button>
+      <button data-mode="mix">Микс</button>
+    </div>
+  </div>
+
+  <div class="filter-row">
+    <select id="spot-filter">
+      <option value="all">Все позиции</option>
+    </select>
+    <label class="toggle-wrapper">
+      <input type="checkbox" id="hard-mode"> Hard Mode
+    </label>
+    <label class="toggle-wrapper">
+      <input type="checkbox" id="srs-mode" checked> SRS
+    </label>
+    <label class="toggle-wrapper">
+      <input type="checkbox" id="speed-mode"> Speed (60s)
+    </label>
+  </div>
+
+  <div class="score-bar">
+    <span>Точность: <strong id="accuracy">—</strong></span>
+    <span>Стрик: <strong id="streak">0</strong> / <strong id="best-streak">0</strong></span>
+    <span class="session-progress">Сессия: <strong id="session-progress">0/20</strong></span>
+    <span class="timer-display" id="timer-display">⏱ 60s</span>
+  </div>
+
+  <div class="question-card">
+    <div class="situation" id="situation">Загрузка...</div>
+    <div class="hand-display" id="hand-display"></div>
+    <div class="range-hint" id="range-hint"></div>
+  </div>
+
+  <div class="feedback hidden" id="feedback">—</div>
+
+  <div class="action-buttons" id="actions">
+    <button class="btn-hint" id="btn-hint" onclick="showHint()">Подсказка</button>
+    <button class="btn-fold" id="btn-fold" onclick="answer('fold')">Фолд</button>
+    <button class="btn-call" id="btn-call" onclick="answer('call')" style="display:none;">Колл</button>
+    <button class="btn-raise" id="btn-raise" onclick="answer('raise')" style="display:none;">Рейз</button>
+    <button class="btn-3bet" id="btn-3bet" onclick="answer('3bet')" style="display:none;">3-Бет</button>
+    <button class="btn-skip" id="btn-skip" onclick="skip()">Пропуск</button>
+  </div>
+
+  <div class="grid-wrap" id="grid-wrap" style="display:none;">
+    <div class="grid" id="grid"></div>
+    <div class="grid-legend" id="grid-legend"></div>
+  </div>
+
+  <button class="next-btn hidden" id="next-btn" onclick="nextQuestion()">Следующая →</button>
+
+  <div class="tools">
+    <button onclick="showStats()">📊 Статистика</button>
+    <button onclick="exportAll()">💾 Экспорт</button>
+    <button onclick="document.getElementById('import-file').click()">📂 Импорт</button>
+    <button onclick="resetStats()">🔄 Сброс</button>
+  </div>
+  <input type="file" id="import-file" accept="application/json,.json" style="display:none" onchange="importAll(event)">
+</div>
+
+<!-- Modals -->
+<div class="modal" id="session-modal">
+  <div class="modal-content">
+    <h2>🏁 Сессия завершена</h2>
+    <div id="session-summary"></div>
+    <div class="modal-actions">
+      <button class="secondary" onclick="closeSession()">Закрыть</button>
+      <button class="primary" onclick="newSession()">Новая сессия</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="stats-modal">
+  <div class="modal-content">
+    <h2>📊 Статистика</h2>
+    <div id="stats-content"></div>
+    <div class="modal-actions">
+      <button class="secondary" onclick="document.getElementById('stats-modal').classList.remove('open')">Закрыть</button>
+    </div>
+  </div>
+</div>
+
+<!-- Visual Editor Modal -->
+<div class="modal" id="editor-modal">
+  <div class="modal-content">
+    <h2>⚙️ Визуальный редактор</h2>
+    
+    <div class="editor-toolbar">
+      <input type="text" id="editor-profile-name" placeholder="Название базы">
+      <button class="btn-icon secondary" onclick="duplicateEditorProfile()" title="Сохранить как копию">
+        <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+      </button>
+      <button class="btn-icon danger" onclick="clearEditorGrid()" title="Очистить всё">
+        <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+      </button>
+    </div>
+
+    <div class="import-row">
+      <input type="text" id="import-range-text" placeholder="Вставить текст: 77+, ATs+...">
+      <button onclick="applyImportedRange()">Применить</button>
+    </div>
+
+    <div class="editor-tabs">
+      <button class="active" onclick="switchEditorTab('rfi', this)">RFI</button>
+      <button onclick="switchEditorTab('3bet', this)">3-Bet</button>
+      <button onclick="switchEditorTab('bb', this)">BB Defense</button>
+    </div>
+
+    <div class="editor-toolbar" id="editor-pos-bar">
+      <select id="editor-pos-select" onchange="changeEditorPosition(this.value)"></select>
+    </div>
+
+    <div class="brush-buttons" id="editor-brushes"></div>
+
+    <div class="editor-grid" id="editor-grid"></div>
+
+    <div class="modal-actions" style="margin-top: 24px;">
+      <button class="danger" onclick="deleteProfile()">Удалить</button>
+      <button class="secondary" onclick="document.getElementById('editor-modal').classList.remove('open')">Отмена</button>
+      <button class="primary" onclick="saveProfile()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============ DEFAULT CHARTS ============
+const DEFAULT_CHARTS = {
+  rfi: {
+    'EP': '77+, ATs+, KTs+, QTs+, JTs, ATo+, KJo+',
+    'MP': '55+, A9s+, K9s+, Q9s+, J9s+, T9s, 98s, 87s, 76s, 65s, ATo+, KJo+, QJo',
+    'CO': '22+, A2s+, K9s+, Q9s+, J9s+, T9s, 98s, 87s, 76s, 65s, 54s, A9o+, KTo+, QTo+, JTo',
+    'BTN': '22+, A2s+, K2s+, Q5s+, J7s+, T7s+, 96s+, 86s+, 75s+, 64s+, 54s, A2o+, K9o+, Q9o+, J9o+, T9o',
+    'SB': '22+, A2s+, K7s+, Q8s+, J8s+, T7s+, 96s+, 86s+, 75s+, 64s+, 54s, A9o+, KTo+, QTo+, JTo'
+  },
+  '3bet': {
+    'vs EP': 'QQ+, AKs, AKo',
+    'vs MP': 'JJ+, AKs, AKo, AQs',
+    'vs CO': 'TT+, AKs, AKo, AQs, AJs',
+    'vs BTN': '99+, AJs+, AQo+, KQs',
+    'vs SB': '66+, A8s+, ATo+, KTs+, KJo+, QTs+, QJo'
+  },
+  bb: {
+    'vs EP': { '3bet': 'QQ+, AK', 'call': '22-99, AQs-ATs, KQs, KJs, QJs, JTs, AQo, AJo, KQo' },
+    'vs MP': { '3bet': 'JJ+, AK, AQs', 'call': '22-TT, A9s+, KTs+, QTs+, JTs, T9s, 98s, 87s, 76s, 65s, AQo, AJo, KQo, KJo, QJo' },
+    'vs BTN': { '3bet': '99+, AJs+, AQo+, KQs', 'call': '22-88, A2s+, K5s+, Q7s+, J7s+, T7s+, 96s+, 85s+, 74s+, 64s+, 53s+, 43s, A2o+, K9o+, Q9o+, J9o+, T9o, 98o' },
+    'vs SB': { '3bet': '66+, A8s+, ATo+, KTs+, KJo+, QTs+, QJo', 'call': '__COMPUTED__' }
+  }
+};
+
+const CHARTS_KEY = 'chartTrainerData';
+const STATS_KEY = 'chartTrainerV6';
+const MISTAKES_KEY = 'chartTrainerMistakes';
+const HISTORY_KEY = 'chartTrainerHistory';
+
+let profiles = {};
+let activeProfileName = '';
+let stats = { correct: 0, total: 0, streak: 0, bestStreak: 0, byMode: { rfi: { t: 0, c: 0 }, '3bet': { t: 0, c: 0 }, bb: { t: 0, c: 0 } }, byKey: {} };
+let sessionHistory = [];
+let mistakes = {};
+
+function loadData() {
+  try {
+    const savedProfiles = localStorage.getItem(CHARTS_KEY);
+    if (savedProfiles) profiles = JSON.parse(savedProfiles);
+    if (Object.keys(profiles).length === 0) profiles['База (TAG)'] = JSON.parse(JSON.stringify(DEFAULT_CHARTS));
+    if (!profiles[activeProfileName]) activeProfileName = Object.keys(profiles)[0];
+
+    const savedStats = localStorage.getItem(STATS_KEY);
+    if (savedStats) stats = Object.assign(stats, JSON.parse(savedStats));
+
+    const savedMistakes = localStorage.getItem(MISTAKES_KEY);
+    if (savedMistakes) mistakes = JSON.parse(savedMistakes);
+
+    const savedHistory = localStorage.getItem(HISTORY_KEY);
+    if (savedHistory) sessionHistory = JSON.parse(savedHistory);
+  } catch(e) {}
+  saveAll();
+  renderProfileSelector();
+}
+
+function saveAll() {
+  localStorage.setItem(CHARTS_KEY, JSON.stringify(profiles));
+  localStorage.setItem(STATS_KEY, JSON.stringify(stats));
+  localStorage.setItem(MISTAKES_KEY, JSON.stringify(mistakes));
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(sessionHistory));
+}
+
+// ============ RANGE EXPANDER ============
+const ranks = ['A','K','Q','J','T','9','8','7','6','5','4','3','2'];
+
+function expandRange(rangeStr) {
+  const hands = new Set();
+  if (!rangeStr) return hands;
+  rangeStr.split(',').forEach(part => {
+    part = part.trim();
+    if (!part) return;
+    if (part.includes('-') && !part.includes('+')) {
+      const [from, to] = part.split('-').map(s => s.trim());
+      expandDash(from, to, hands);
+      return;
+    }
+    const plus = part.endsWith('+');
+    const base = plus ? part.slice(0, -1) : part;
+    const match = base.match(/^([AKQJT98765432])([AKQJT98765432])([so]?)$/);
+    if (!match) return;
+    const [, r1, r2, suit] = match;
+    const i1 = ranks.indexOf(r1), i2 = ranks.indexOf(r2);
+
+    if (r1 === r2) {
+      if (plus) { for (let i = i1; i >= 0; i--) hands.add(ranks[i] + ranks[i]); }
+      else { hands.add(r1 + r2); }
+    } else {
+      if (plus) {
+        if (suit === 's' || suit === 'o') { for (let i = i2; i > i1; i--) hands.add(r1 + ranks[i] + suit); }
+        else { for (let i = i2; i > i1; i--) { hands.add(r1 + ranks[i] + 's'); hands.add(r1 + ranks[i] + 'o'); } }
+      } else { hands.add(r1 + r2 + suit); }
+    }
+  });
+  return hands;
+}
+
+function expandDash(from, to, hands) {
+  const mf = from.match(/^([AKQJT98765432])([AKQJT98765432])([so]?)$/);
+  const mt = to.match(/^([AKQJT98765432])([AKQJT98765432])([so]?)$/);
+  if (!mf || !mt) return;
+  if (mf[1] === mf[2] && mt[1] === mt[2]) {
+    const i1 = ranks.indexOf(mf[1]), i2 = ranks.indexOf(mt[1]);
+    const start = Math.max(i1, i2), end = Math.min(i1, i2);
+    for (let i = end; i <= start; i++) hands.add(ranks[i] + ranks[i]);
+    return;
+  }
+  if (mf[1] === mt[1] && mf[3] === mt[3]) {
+    const i1 = ranks.indexOf(mf[2]), i2 = ranks.indexOf(mt[2]);
+    const start = Math.max(i1, i2), end = Math.min(i1, i2);
+    for (let i = end; i <= start; i++) { if (i !== ranks.indexOf(mf[1])) hands.add(mf[1] + ranks[i] + mf[3]); }
+  }
+}
+
+const ALL_HANDS = [];
+ranks.forEach((r1, i) => {
+  ranks.forEach((r2, j) => {
+    if (i === j) ALL_HANDS.push(r1 + r2);
+    else if (i < j) ALL_HANDS.push(r1 + r2 + 's');
+    else ALL_HANDS.push(r2 + r1 + 'o');
+  });
+});
+
+let RFI_RANGES = {}, THREEBET_RANGES = {}, BB_RANGES = {}, currentRFI = {}, current3BET = {}, currentBB = {};
+
+function initRanges() {
+  const p = profiles[activeProfileName];
+  currentRFI = p.rfi || {}; current3BET = p['3bet'] || {}; currentBB = p.bb || {};
+
+  RFI_RANGES = {}; Object.keys(currentRFI).forEach(pos => RFI_RANGES[pos] = expandRange(currentRFI[pos]));
+  THREEBET_RANGES = {}; Object.keys(current3BET).forEach(pos => THREEBET_RANGES[pos] = expandRange(current3BET[pos]));
+
+  BB_RANGES = {};
+  Object.keys(currentBB).forEach(pos => {
+    const def = currentBB[pos];
+    const threeset = expandRange(def['3bet']);
+    let callset;
+    if (def['call'] === '__COMPUTED__') {
+      const folds = expandRange('32o, 42o, 52o, 62o, 72o, 82o, 92o, 43o, 53o, 63o, 73o, 83o, 93o');
+      callset = new Set();
+      ALL_HANDS.forEach(h => { if (!threeset.has(h) && !folds.has(h)) callset.add(h); });
+    } else { callset = expandRange(def['call']); }
+    BB_RANGES[pos] = { '3bet': threeset, 'call': callset };
+  });
+}
+
+// ============ GAME LOGIC ============
+const SESSION_LENGTH = 20;
+let mode = 'rfi', spotFilter = 'all', hardMode = false, srsMode = true, speedMode = false;
+let currentQ = null, answered = false, currentSessionMistakes = [];
+let session = { questions: [] };
+let speedTimer = null, speedTimeLeft = 60;
+
+function pickRandom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function updateSpotFilter() {
+  const sel = document.getElementById('spot-filter');
+  sel.innerHTML = '<option value="all">Все позиции</option>';
+  if (mode === 'rfi' || mode === 'mix') Object.keys(currentRFI).forEach(pos => sel.innerHTML += `<option value="rfi_${pos}">RFI: ${pos}</option>`);
+  if (mode === '3bet' || mode === 'mix') Object.keys(current3BET).forEach(pos => sel.innerHTML += `<option value="3bet_${pos}">3-Bet: ${pos}</option>`);
+  if (mode === 'bb' || mode === 'mix') Object.keys(currentBB).forEach(pos => sel.innerHTML += `<option value="bb_${pos}">BB Def: ${pos}</option>`);
+  sel.value = 'all'; spotFilter = 'all';
+}
+
+function startSpeedTimer() {
+  if (speedTimer) clearInterval(speedTimer);
+  speedTimeLeft = 60;
+  const display = document.getElementById('timer-display');
+  display.classList.add('active');
+  display.textContent = `⏱ ${speedTimeLeft}s`;
+  speedTimer = setInterval(() => {
+    speedTimeLeft--;
+    display.textContent = `⏱ ${speedTimeLeft}s`;
+    if (speedTimeLeft <= 0) {
+      clearInterval(speedTimer);
+      speedTimer = null;
+      display.classList.remove('active');
+      showSessionSummary(true);
+    }
+  }, 1000);
+}
+
+function nextQuestion() {
+  answered = false;
+  document.getElementById('feedback').classList.add('hidden');
+  document.getElementById('next-btn').classList.add('hidden');
+  document.getElementById('grid-wrap').style.display = 'none';
+  document.getElementById('range-hint').textContent = '';
+  document.getElementById('btn-skip').disabled = false;
+  document.getElementById('btn-hint').disabled = false;
+
+  ['btn-fold', 'btn-call', 'btn-raise', 'btn-3bet'].forEach(id => {
+    document.getElementById(id).disabled = false;
+    document.getElementById(id).style.display = 'none';
+  });
+
+  if (session.questions.length === 0 && speedMode) startSpeedTimer();
+  if (!speedMode && speedTimer) { clearInterval(speedTimer); speedTimer = null; document.getElementById('timer-display').classList.remove('active'); }
+
+  let type = mode === 'mix' ? pickRandom(['rfi', '3bet', 'bb']) : mode;
+  let position = '';
+
+  if (spotFilter !== 'all') {
+    const [fType, ...fPos] = spotFilter.split('_');
+    type = fType; position = fPos.join('_');
+  }
+
+  let rangeSet;
+  if (type === 'rfi') {
+    if (!position) position = pickRandom(Object.keys(RFI_RANGES));
+    rangeSet = RFI_RANGES[position];
+  } else if (type === '3bet') {
+    if (!position) position = pickRandom(Object.keys(THREEBET_RANGES));
+    rangeSet = THREEBET_RANGES[position];
+  } else {
+    if (!position) position = pickRandom(Object.keys(BB_RANGES));
+    rangeSet = BB_RANGES[position]['3bet'];
+  }
+
+  // SRS & Hard Mode Hand Selection
+  let hand;
+  const mistakeKeyPrefix = `${type}_${position}_`;
+  const pool = Object.keys(mistakes).filter(k => k.startsWith(mistakeKeyPrefix) && mistakes[k] > 0);
+  
+  if (srsMode && pool.length > 0 && Math.random() < 0.4) {
+    // 40% шанс выбрать руку из пула ошибок
+    const pickedKey = pickRandom(pool);
+    hand = pickedKey.replace(mistakeKeyPrefix, '');
+  } else if (hardMode) {
+    const boundary = getBoundaryHands(rangeSet);
+    hand = boundary.length > 0 ? pickRandom(boundary) : pickRandom(ALL_HANDS);
+  } else {
+    hand = pickRandom(ALL_HANDS);
+  }
+
+  // Заполнение UI
+  if (type === 'rfi') {
+    const isRaise = rangeSet.has(hand);
+    currentQ = { type, position, hand, isRaise };
+    document.getElementById('situation').innerHTML = `Позиция: <strong>${position}</strong> — Открывать?`;
+    document.getElementById('btn-fold').style.display = '';
+    document.getElementById('btn-raise').style.display = '';
+  } else if (type === '3bet') {
+    const is3bet = rangeSet.has(hand);
+    currentQ = { type, position, hand, is3bet };
+    document.getElementById('situation').innerHTML = `Опен от <strong>${position.replace('vs ', '')}</strong> — 3-бет?`;
+    document.getElementById('btn-fold').style.display = '';
+    document.getElementById('btn-3bet').style.display = '';
+  } else {
+    const is3bet = BB_RANGES[position]['3bet'].has(hand);
+    const isCall = BB_RANGES[position]['call'].has(hand);
+    currentQ = { type, position, hand, is3bet, isCall };
+    document.getElementById('situation').innerHTML = `BB vs <strong>${position.replace('vs ', '')}</strong> — защита?`;
+    document.getElementById('btn-fold').style.display = '';
+    document.getElementById('btn-call').style.display = '';
+    document.getElementById('btn-3bet').style.display = '';
+  }
+
+  document.getElementById('hand-display').innerHTML = displayHand(hand);
+}
+
+function showHint() {
+  if (answered) return;
+  const wrap = document.getElementById('grid-wrap');
+  if (wrap.style.display === 'none') {
+    renderGrid(currentQ);
+    wrap.style.display = '';
+    document.getElementById('btn-hint').textContent = 'Скрыть';
+  } else {
+    wrap.style.display = 'none';
+    document.getElementById('btn-hint').textContent = 'Подсказка';
+  }
+}
+
+function answer(action) {
+  if (answered) return;
+  answered = true;
+  document.getElementById('btn-skip').disabled = true;
+  document.getElementById('btn-hint').disabled = true;
+  document.getElementById('btn-hint').textContent = 'Подсказка';
+
+  let correct = false, correctAction = '';
+  if (currentQ.type === 'rfi') {
+    correct = (action === 'raise') === currentQ.isRaise;
+    correctAction = currentQ.isRaise ? 'RAISE' : 'FOLD';
+  } else if (currentQ.type === '3bet') {
+    correct = (action === '3bet') === currentQ.is3bet;
+    correctAction = currentQ.is3bet ? '3-BET' : 'FOLD';
+  } else {
+    if (currentQ.is3bet) { correct = action === '3bet'; correctAction = '3-BET'; }
+    else if (currentQ.isCall) { correct = action === 'call'; correctAction = 'CALL'; }
+    else { correct = action === 'fold'; correctAction = 'FOLD'; }
+  }
+
+  const mistakeKey = `${currentQ.type}_${currentQ.position}_${currentQ.hand}`;
+  if (correct) {
+    stats.correct++; stats.streak++;
+    if (stats.streak > stats.bestStreak) stats.bestStreak = stats.streak;
+    if (mistakes[mistakeKey]) mistakes[mistakeKey] = Math.max(0, mistakes[mistakeKey] - 1);
+  } else {
+    stats.streak = 0;
+    mistakes[mistakeKey] = (mistakes[mistakeKey] || 0) + 1;
+    currentSessionMistakes.push(currentQ.hand);
+  }
+  stats.total++;
+
+  if (!stats.byMode[currentQ.type]) stats.byMode[currentQ.type] = { t: 0, c: 0 };
+  stats.byMode[currentQ.type].t++; if (correct) stats.byMode[currentQ.type].c++;
+  const key = currentQ.type + '_' + currentQ.position;
+  if (!stats.byKey[key]) stats.byKey[key] = { t: 0, c: 0 };
+  stats.byKey[key].t++; if (correct) stats.byKey[key].c++;
+  saveAll();
+
+  const fb = document.getElementById('feedback');
+  fb.classList.remove('hidden');
+  fb.className = correct ? 'feedback correct' : 'feedback wrong';
+  fb.textContent = correct ? `✅ Верно! Правильно: ${correctAction}` : `❌ Ошибка. Правильно: ${correctAction}`;
+
+  let hint = '';
+  if (currentQ.type === 'rfi') hint = 'Чарт RFI ' + currentQ.position + ': ' + currentRFI[currentQ.position];
+  else if (currentQ.type === '3bet') hint = 'Чарт 3-Bet ' + currentQ.position + ': ' + current3BET[currentQ.position];
+  else hint = 'BB ' + currentQ.position + ' — 3bet: ' + currentBB[currentQ.position]['3bet'] + ' | call: ' + (currentBB[currentQ.position]['call'] === '__COMPUTED__' ? 'всё остальное' : currentBB[currentQ.position]['call']);
+  document.getElementById('range-hint').textContent = hint;
+
+  renderGrid(currentQ);
+  ['btn-fold', 'btn-call', 'btn-raise', 'btn-3bet'].forEach(id => document.getElementById(id).disabled = true);
+
+  session.questions.push({ type: currentQ.type, position: currentQ.position, hand: currentQ.hand, correct });
+  updateScoreDisplay();
+
+  if (session.questions.length >= SESSION_LENGTH) showSessionSummary();
+  else document.getElementById('next-btn').classList.remove('hidden');
+}
+
+function skip() {
+  if (answered) return;
+  answered = true;
+  document.getElementById('btn-skip').disabled = true;
+  document.getElementById('btn-hint').disabled = true;
+  document.getElementById('btn-hint').textContent = 'Подсказка';
+  
+  const fb = document.getElementById('feedback');
+  fb.classList.remove('hidden');
+  fb.className = 'feedback skip';
+  fb.textContent = '⏭ Пропущено.';
+
+  let correctAction = currentQ.isRaise ? 'RAISE' : currentQ.is3bet ? '3-BET' : currentQ.isCall ? 'CALL' : 'FOLD';
+  let hint = currentQ.type === 'rfi' ? currentRFI[currentQ.position] : (currentQ.type === '3bet' ? current3BET[currentQ.position] : 'см. сетку');
+  document.getElementById('range-hint').textContent = 'Правильно: ' + correctAction + ' | Чарт: ' + hint;
+  
+  renderGrid(currentQ);
+  ['btn-fold', 'btn-call', 'btn-raise', 'btn-3bet'].forEach(id => document.getElementById(id).disabled = true);
+  
+  session.questions.push({ type: currentQ.type, position: currentQ.position, hand: currentQ.hand, correct: false, skipped: true });
+  updateScoreDisplay();
+  
+  if (session.questions.length >= SESSION_LENGTH) showSessionSummary();
+  else document.getElementById('next-btn').classList.remove('hidden');
+}
+
+// ============ UI RENDERING ============
+const suits = ['♠','♥','♦','♣'], suitClasses = ['spades', 'hearts', 'diamonds', 'clubs'];
+function displayHand(handStr) {
+  const m = handStr.match(/^([AKQJT98765432])([AKQJT98765432])([so]?)$/);
+  if (!m) return `<span>${handStr}</span>`;
+  const [, r1, r2, suit] = m;
+  const makeCard = (r, s) => `<div class="playing-card ${suitClasses[s]}"><div class="card-rank">${r}</div><div class="card-suit">${suits[s]}</div></div>`;
+  if (r1 === r2) {
+    const s1 = Math.floor(Math.random() * 4); let s2 = Math.floor(Math.random() * 4);
+    while (s2 === s1) s2 = Math.floor(Math.random() * 4);
+    return makeCard(r1, s1) + makeCard(r2, s2);
+  }
+  if (suit === 's') { const s = Math.floor(Math.random() * 4); return makeCard(r1, s) + makeCard(r2, s); }
+  const s1 = Math.floor(Math.random() * 4); let s2 = Math.floor(Math.random() * 4);
+  while (s2 === s1) s2 = Math.floor(Math.random() * 4);
+  return makeCard(r1, s1) + makeCard(r2, s2);
+}
+
+function renderGrid(q) {
+  const wrap = document.getElementById('grid-wrap'), grid = document.getElementById('grid'), legend = document.getElementById('grid-legend');
+  grid.innerHTML = ''; legend.innerHTML = '';
+  let raiseSet, callSet, raiseLabel;
+  if (q.type === 'rfi') { raiseSet = RFI_RANGES[q.position]; callSet = new Set(); raiseLabel = 'Рейз'; }
+  else if (q.type === '3bet') { raiseSet = THREEBET_RANGES[q.position]; callSet = new Set(); raiseLabel = '3-Бет'; }
+  else { raiseSet = BB_RANGES[q.position]['3bet']; callSet = BB_RANGES[q.position]['call']; raiseLabel = '3-Бет'; }
+
+  for (let i = 0; i < 13; i++) {
+    for (let j = 0; j < 13; j++) {
+      const r1 = ranks[i], r2 = ranks[j];
+      let handStr, cls;
+      if (i === j) { handStr = r1 + r2; cls = 'pair'; }
+      else if (i < j) { handStr = r1 + r2 + 's'; cls = 'suited'; }
+      else { handStr = r2 + r1 + 'o'; cls = 'offsuit'; }
+      let actionCls = '';
+      if (raiseSet.has(handStr)) actionCls = q.type === 'bb' ? 'in-3bet' : 'in-raise';
+      else if (callSet.has(handStr)) actionCls = 'in-call';
+      const cell = document.createElement('div');
+      cell.className = `grid-cell ${cls} ${actionCls} ${handStr === q.hand ? 'current' : ''}`;
+      cell.textContent = handStr;
+      grid.appendChild(cell);
+    }
+  }
+  legend.innerHTML = `
+    <span><span class="dot" style="background:#${q.type === 'bb' ? '8b5cf6' : '10b981'}"></span>${raiseLabel}</span>
+    ${q.type === 'bb' ? '<span><span class="dot" style="background:#f59e0b"></span>Колл</span>' : ''}
+    <span><span class="dot" style="background:#334155"></span>Фолд</span>
+    <span><span class="dot" style="background:#f1f5f9"></span>Твоя рука</span>
+  `;
+  wrap.style.display = '';
+}
+
+function updateScoreDisplay() {
+  const acc = stats.total > 0 ? Math.round(stats.correct / stats.total * 100) : 0;
+  document.getElementById('accuracy').textContent = stats.total > 0 ? acc + '%' : '—';
+  document.getElementById('streak').textContent = stats.streak;
+  document.getElementById('best-streak').textContent = stats.bestStreak;
+  document.getElementById('session-progress').textContent = session.questions.length + '/' + SESSION_LENGTH;
+}
+
+// ============ SESSION SUMMARY ============
+function showSessionSummary(isSpeed = false) {
+  if (speedTimer) { clearInterval(speedTimer); speedTimer = null; document.getElementById('timer-display').classList.remove('active'); }
+  
+  const correct = session.questions.filter(q => q.correct).length;
+  const total = session.questions.length;
+  const acc = total > 0 ? Math.round(correct / total * 100) : 0;
+  
+  if (total > 0) {
+    sessionHistory.push({ date: new Date().toISOString(), acc, total });
+    if (sessionHistory.length > 10) sessionHistory.shift(); // Храним последние 10
+    saveAll();
+  }
+
+  const typeNames = { rfi: 'RFI', '3bet': '3-Bet', bb: 'BB Defense' };
+  let html = `<div class="stat-row"><span class="label">Точность</span><span class="val ${acc >= 80 ? 'good' : acc >= 60 ? 'mid' : 'bad'}">${acc}%</span></div>`;
+  if (isSpeed) html = `<div class="stat-row"><span class="label">Режим Speed Drill</span><span class="val">60 секунд</span></div>` + html;
+  html += `<div class="stat-row"><span class="label">Правильно</span><span class="val">${correct} / ${total}</span></div>`;
+  
+  if (currentSessionMistakes.length > 0) {
+    html += `<div class="stat-row"><span class="label">Руки на повторение (SRS)</span><span class="val bad">${currentSessionMistakes.join(', ')}</span></div>`;
+  }
+
+  document.getElementById('session-summary').innerHTML = html;
+  document.getElementById('session-modal').classList.add('open');
+  document.getElementById('next-btn').classList.add('hidden');
+}
+
+function closeSession() { document.getElementById('session-modal').classList.remove('open'); session = { questions: [] }; currentSessionMistakes = []; updateScoreDisplay(); nextQuestion(); }
+function newSession() { document.getElementById('session-modal').classList.remove('open'); session = { questions: [] }; currentSessionMistakes = []; updateScoreDisplay(); nextQuestion(); }
+
+// ============ STATS & CHART ============
+function showStats() {
+  const acc = stats.total > 0 ? Math.round(stats.correct / stats.total * 100) : 0;
+  const typeNames = { rfi: 'RFI', '3bet': '3-Bet', bb: 'BB Defense' };
+  
+  // Слабые места
+  const sortedKeys = Object.keys(stats.byKey).filter(k => stats.byKey[k].t >= 5).sort((a,b) => {
+    const accA = stats.byKey[a].c / stats.byKey[a].t;
+    const accB = stats.byKey[b].c / stats.byKey[b].t;
+    return accA - accB;
+  });
+  let weakestHtml = '';
+  sortedKeys.slice(0, 3).forEach(k => {
+    const s = stats.byKey[k];
+    const a = Math.round(s.c / s.t * 100);
+    const [type, ...pos] = k.split('_');
+    weakestHtml += `<div class="stat-row"><span class="label">${typeNames[type] || type} ${pos.join('_')}</span><span class="val bad">${s.c} / ${s.t} (${a}%)</span></div>`;
+  });
+  if (!weakestHtml) weakestHtml = '<div class="stat-row"><span class="label">Мало данных</span></div>';
+
+  let html = `
+    <div class="stat-row"><span class="label">Всего вопросов</span><span class="val">${stats.total}</span></div>
+    <div class="stat-row"><span class="label">Точность общая</span><span class="val ${acc >= 80 ? 'good' : acc >= 60 ? 'mid' : 'bad'}">${acc}%</span></div>
+    <h3>Твои слабые места (мин. 5 попыток)</h3>
+    ${weakestHtml}
+    <h3>График прогресса</h3>
+    <div class="chart-container"><canvas id="progress-chart" width="500" height="130"></canvas></div>
+    <h3>По режимам</h3>
+  `;
+  
+  ['rfi', '3bet', 'bb'].forEach(m => {
+    const s = stats.byMode[m] || { t: 0, c: 0 };
+    const a = s.t > 0 ? Math.round(s.c / s.t * 100) : 0;
+    html += `<div class="stat-row"><span class="label">${typeNames[m]}</span><span class="val ${s.t === 0 ? '' : a >= 80 ? 'good' : a >= 60 ? 'mid' : 'bad'}">${s.c} / ${s.t} ${s.t > 0 ? '(' + a + '%)' : ''}</span></div>`;
+  });
+
+  document.getElementById('stats-content').innerHTML = html;
+  document.getElementById('stats-modal').classList.add('open');
+  setTimeout(drawChart, 50); // Ждем отрисовки DOM
+}
+
+function drawChart() {
+  const canvas = document.getElementById('progress-chart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+
+  const data = sessionHistory.slice(-7); // Последние 7 сессий
+  if (data.length < 2) {
+    ctx.fillStyle = '#64748b'; ctx.font = '14px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('Нужно сыграть минимум 2 сессии', w/2, h/2);
+    return;
+  }
+
+  const padding = 20, graphW = w - padding * 2, graphH = h - padding * 2;
+  const stepX = graphW / (data.length - 1);
+
+  // Ось Y (0-100%)
+  ctx.strokeStyle = '#334155'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(padding, padding); ctx.lineTo(padding, h - padding); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(padding, h - padding); ctx.lineTo(w - padding, h - padding); ctx.stroke();
+
+  // Линия графика
+  ctx.strokeStyle = '#10b981'; ctx.lineWidth = 3; ctx.lineJoin = 'round';
+  ctx.beginPath();
+  data.forEach((d, i) => {
+    const x = padding + i * stepX;
+    const y = h - padding - (d.acc / 100) * graphH;
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+
+  // Точки
+  ctx.fillStyle = '#10b981';
+  data.forEach((d, i) => {
+    const x = padding + i * stepX;
+    const y = h - padding - (d.acc / 100) * graphH;
+    ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2); ctx.fill();
+    
+    // Подпись процента
+    ctx.fillStyle = '#f1f5f9'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText(d.acc + '%', x, y - 8);
+  });
+}
+
+// ============ EDITOR LOGIC ============
+let editorData = {}, currentEditorTab = 'rfi', currentEditorPos = '', currentBrush = 'raise', editorOriginalName = '';
+
+function openEditor(isNew = false) {
+  if (isNew) {
+    editorData = { rfi: {}, '3bet': {}, bb: {} };
+    Object.keys(DEFAULT_CHARTS.rfi).forEach(pos => editorData.rfi[pos] = new Set());
+    Object.keys(DEFAULT_CHARTS['3bet']).forEach(pos => editorData['3bet'][pos] = new Set());
+    Object.keys(DEFAULT_CHARTS.bb).forEach(pos => editorData.bb[pos] = { '3bet': new Set(), 'call': new Set() });
+    document.getElementById('editor-profile-name').value = 'Новый профиль';
+    editorOriginalName = '';
+  } else {
+    editorOriginalName = activeProfileName;
+    editorData = { rfi: {}, '3bet': {}, bb: {} };
+    const p = profiles[activeProfileName];
+    Object.keys(p.rfi || {}).forEach(pos => editorData.rfi[pos] = expandRange(p.rfi[pos]));
+    Object.keys(p['3bet'] || {}).forEach(pos => editorData['3bet'][pos] = expandRange(p['3bet'][pos]));
+    Object.keys(p.bb || {}).forEach(pos => {
+      const def = p.bb[pos];
+      const threeset = expandRange(def['3bet']);
+      let callset;
+      if (def['call'] === '__COMPUTED__') {
+        const folds = expandRange('32o, 42o, 52o, 62o, 72o, 82o, 92o, 43o, 53o, 63o, 73o, 83o, 93o');
+        callset = new Set();
+        ALL_HANDS.forEach(h => { if (!threeset.has(h) && !folds.has(h)) callset.add(h); });
+      } else { callset = expandRange(def['call']); }
+      editorData.bb[pos] = { '3bet': threeset, 'call': callset };
+    });
+    document.getElementById('editor-profile-name').value = activeProfileName;
+  }
+  switchEditorTab('rfi', document.querySelector('.editor-tabs button'));
+  document.getElementById('editor-modal').classList.add('open');
+}
+
+function clearEditorGrid() {
+  if (!confirm('Очистить всё для текущей позиции?')) return;
+  if (currentEditorTab === 'bb') {
+    editorData.bb[currentEditorPos]['3bet'].clear();
+    editorData.bb[currentEditorPos]['call'].clear();
+  } else {
+    editorData[currentEditorTab][currentEditorPos].clear();
+  }
+  renderEditorGrid();
+}
+
+function applyImportedRange() {
+  const text = document.getElementById('import-range-text').value;
+  if (!text) return;
+  const newSet = expandRange(text);
+  if (currentEditorTab === 'bb') {
+    if (currentBrush === '3bet') editorData.bb[currentEditorPos]['3bet'] = newSet;
+    else if (currentBrush === 'call') editorData.bb[currentEditorPos]['call'] = newSet;
+    else alert('Выберите кисть 3-Бет или Колл для BB Defense');
+  } else {
+    editorData[currentEditorTab][currentEditorPos] = newSet;
+  }
+  document.getElementById('import-range-text').value = '';
+  renderEditorGrid();
+}
+
+function duplicateEditorProfile() {
+  document.getElementById('editor-profile-name').value += ' (копия)';
+  editorOriginalName = '';
+}
+
+function switchEditorTab(tab, btn) {
+  currentEditorTab = tab;
+  document.querySelectorAll('.editor-tabs button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const posSelect = document.getElementById('editor-pos-select');
+  posSelect.innerHTML = '';
+  let positions = tab === 'rfi' ? Object.keys(editorData.rfi) : (tab === '3bet' ? Object.keys(editorData['3bet']) : Object.keys(editorData.bb));
+  positions.forEach(pos => { const opt = document.createElement('option'); opt.value = pos; opt.textContent = pos; posSelect.appendChild(opt); });
+  currentEditorPos = positions[0];
+  posSelect.value = currentEditorPos;
+  updateBrushes();
+  renderEditorGrid();
+}
+
+function changeEditorPosition(pos) { currentEditorPos = pos; renderEditorGrid(); }
+
+function updateBrushes() {
+  const brushWrap = document.getElementById('editor-brushes');
+  brushWrap.innerHTML = '';
+  if (currentEditorTab === 'rfi') {
+    brushWrap.innerHTML = `<button class="brush-btn active" data-action="raise" onclick="setBrush('raise', this)">Рейз</button><button class="brush-btn" data-action="fold" onclick="setBrush('fold', this)">Фолд</button>`;
+    currentBrush = 'raise';
+  } else if (currentEditorTab === '3bet') {
+    brushWrap.innerHTML = `<button class="brush-btn active" data-action="3bet" onclick="setBrush('3bet', this)">3-Бет</button><button class="brush-btn" data-action="fold" onclick="setBrush('fold', this)">Фолд</button>`;
+    currentBrush = '3bet';
+  } else {
+    brushWrap.innerHTML = `<button class="brush-btn active" data-action="3bet" onclick="setBrush('3bet', this)">3-Бет</button><button class="brush-btn" data-action="call" onclick="setBrush('call', this)">Колл</button><button class="brush-btn" data-action="fold" onclick="setBrush('fold', this)">Фолд</button>`;
+    currentBrush = '3bet';
+  }
+}
+
+function setBrush(brush, btn) {
+  currentBrush = brush;
+  document.querySelectorAll('.brush-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function renderEditorGrid() {
+  const grid = document.getElementById('editor-grid');
+  grid.innerHTML = '';
+  for (let i = 0; i < 13; i++) {
+    for (let j = 0; j < 13; j++) {
+      const r1 = ranks[i], r2 = ranks[j];
+      let handStr, cls;
+      if (i === j) { handStr = r1 + r2; cls = 'pair'; }
+      else if (i < j) { handStr = r1 + r2 + 's'; cls = 'suited'; }
+      else { handStr = r2 + r1 + 'o'; cls = 'offsuit'; }
+      let actionCls = '';
+      if (currentEditorTab === 'rfi') { if (editorData.rfi[currentEditorPos].has(handStr)) actionCls = 'in-raise'; }
+      else if (currentEditorTab === '3bet') { if (editorData['3bet'][currentEditorPos].has(handStr)) actionCls = 'in-3bet'; }
+      else {
+        if (editorData.bb[currentEditorPos]['3bet'].has(handStr)) actionCls = 'in-3bet';
+        else if (editorData.bb[currentEditorPos]['call'].has(handStr)) actionCls = 'in-call';
+      }
+      const cell = document.createElement('div');
+      cell.className = `editor-cell ${cls} ${actionCls}`;
+      cell.textContent = handStr;
+      
+      // Mobile Swipe Logic
+      cell.onpointerdown = (e) => { e.preventDefault(); isDrawing = true; toggleEditorCell(handStr); };
+      cell.onpointerenter = (e) => { if (isDrawing) toggleEditorCell(handStr); };
+      
+      grid.appendChild(cell);
+    }
+  }
+}
+
+// Глобальный флаг для рисования
+let isDrawing = false;
+window.addEventListener('pointerup', () => { isDrawing = false; });
+
+function toggleEditorCell(handStr) {
+  if (currentEditorTab === 'rfi') {
+    const set = editorData.rfi[currentEditorPos];
+    if (currentBrush === 'raise') set.has(handStr) ? set.delete(handStr) : set.add(handStr);
+    else if (currentBrush === 'fold') set.delete(handStr);
+  } else if (currentEditorTab === '3bet') {
+    const set = editorData['3bet'][currentEditorPos];
+    if (currentBrush === '3bet') set.has(handStr) ? set.delete(handStr) : set.add(handStr);
+    else if (currentBrush === 'fold') set.delete(handStr);
+  } else {
+    const data = editorData.bb[currentEditorPos];
+    if (currentBrush === '3bet') { data['3bet'].has(handStr) ? data['3bet'].delete(handStr) : (data['3bet'].add(handStr), data['call'].delete(handStr)); }
+    else if (currentBrush === 'call') { data['call'].has(handStr) ? data['call'].delete(handStr) : (data['call'].add(handStr), data['3bet'].delete(handStr)); }
+    else if (currentBrush === 'fold') { data['3bet'].delete(handStr); data['call'].delete(handStr); }
+  }
+  // Обновляем только нужную клетку для скорости
+  const idx = Array.from(document.getElementById('editor-grid').children).findIndex(c => c.textContent === handStr);
+  if (idx !== -1) {
+    const cell = document.getElementById('editor-grid').children[idx];
+    let actionCls = '';
+    if (currentEditorTab === 'rfi') { if (editorData.rfi[currentEditorPos].has(handStr)) actionCls = 'in-raise'; }
+    else if (currentEditorTab === '3bet') { if (editorData['3bet'][currentEditorPos].has(handStr)) actionCls = 'in-3bet'; }
+    else {
+      if (editorData.bb[currentEditorPos]['3bet'].has(handStr)) actionCls = 'in-3bet';
+      else if (editorData.bb[currentEditorPos]['call'].has(handStr)) actionCls = 'in-call';
+    }
+    const r1 = handStr[0], r2 = handStr[1];
+    let cls = (r1 === r2) ? 'pair' : (handStr.endsWith('s') ? 'suited' : 'offsuit');
+    cell.className = `editor-cell ${cls} ${actionCls}`;
+  }
+}
+
+function saveProfile() {
+  const newName = document.getElementById('editor-profile-name').value.trim();
+  if (!newName) return alert('Введите название профиля');
+  if (profiles[newName] && newName !== editorOriginalName) { if (!confirm(`База "${newName}" существует. Перезаписать?`)) return; }
+  
+  const newProfile = { rfi: {}, '3bet': {}, bb: {} };
+  Object.keys(editorData.rfi).forEach(pos => newProfile.rfi[pos] = Array.from(editorData.rfi[pos]).join(', '));
+  Object.keys(editorData['3bet']).forEach(pos => newProfile['3bet'][pos] = Array.from(editorData['3bet'][pos]).join(', '));
+  Object.keys(editorData.bb).forEach(pos => newProfile.bb[pos] = { '3bet': Array.from(editorData.bb[pos]['3bet']).join(', '), 'call': Array.from(editorData.bb[pos]['call']).join(', ') });
+
+  if (editorOriginalName && newName !== editorOriginalName) delete profiles[editorOriginalName];
+  profiles[newName] = newProfile; activeProfileName = newName; editorOriginalName = newName;
+
+  saveAll(); renderProfileSelector(); initRanges(); updateSpotFilter();
+  document.getElementById('editor-modal').classList.remove('open');
+  session = { questions: [] }; updateScoreDisplay(); nextQuestion();
+}
+
+function deleteProfile() {
+  if (Object.keys(profiles).length <= 1) return alert('Нельзя удалить единственную базу.');
+  if (confirm('Удалить текущую базу?')) {
+    delete profiles[activeProfileName];
+    activeProfileName = Object.keys(profiles)[0];
+    saveAll(); renderProfileSelector(); initRanges(); updateSpotFilter();
+    document.getElementById('editor-modal').classList.remove('open');
+    session = { questions: [] }; updateScoreDisplay(); nextQuestion();
+  }
+}
+
+// ============ EXPORT / IMPORT / RESET ============
+function exportAll() {
+  const payload = { app: 'chart-trainer', version: 'v6', exportedAt: new Date().toISOString(), profiles, activeProfileName, stats, mistakes, sessionHistory };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob); const d = new Date(); const pad = n => String(n).padStart(2, '0');
+  const a = document.createElement('a'); a.href = url; a.download = `trainer_backup_${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}.json`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+
+function importAll(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      if (parsed.profiles) {
+        profiles = parsed.profiles; activeProfileName = parsed.activeProfileName || Object.keys(profiles)[0];
+        if (parsed.stats) stats = Object.assign(stats, parsed.stats);
+        if (parsed.mistakes) mistakes = parsed.mistakes;
+        if (parsed.sessionHistory) sessionHistory = parsed.sessionHistory;
+        saveAll(); renderProfileSelector(); initRanges(); updateSpotFilter();
+        session = { questions: [] }; updateScoreDisplay(); nextQuestion();
+        alert('Данные успешно импортированы.');
+      } else throw new Error('Неверный формат');
+    } catch (err) { alert('Ошибка импорта: ' + err.message); }
+    finally { event.target.value = ''; }
+  };
+  reader.readAsText(file);
+}
+
+function resetStats() {
+  if (!confirm('Сбросить статистику и SRS-ошибки? Базы не пострадают.')) return;
+  stats = { correct: 0, total: 0, streak: 0, bestStreak: stats.bestStreak, byMode: { rfi: {t:0,c:0}, '3bet': {t:0,c:0}, bb: {t:0,c:0} }, byKey: {} };
+  mistakes = {}; sessionHistory = [];
+  saveAll(); session = { questions: [] }; updateScoreDisplay(); nextQuestion();
+}
+
+// ============ INIT ============
+function renderProfileSelector() {
+  const sel = document.getElementById('profile-selector');
+  sel.innerHTML = '';
+  Object.keys(profiles).forEach(name => {
+    const opt = document.createElement('option'); opt.value = name; opt.textContent = name;
+    if (name === activeProfileName) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+function changeProfile(name) {
+  activeProfileName = name; saveAll(); initRanges(); updateSpotFilter();
+  session = { questions: [] }; updateScoreDisplay(); nextQuestion();
+}
+
+document.querySelectorAll('.modes button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.modes button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active'); mode = btn.dataset.mode;
+    updateSpotFilter(); session = { questions: [] }; updateScoreDisplay(); nextQuestion();
+  });
+});
+
+document.getElementById('spot-filter').addEventListener('change', (e) => { spotFilter = e.target.value; session = { questions: [] }; updateScoreDisplay(); nextQuestion(); });
+document.getElementById('hard-mode').addEventListener('change', (e) => { hardMode = e.target.checked; nextQuestion(); });
+document.getElementById('srs-mode').addEventListener('change', (e) => { srsMode = e.target.checked; nextQuestion(); });
+document.getElementById('speed-mode').addEventListener('change', (e) => { speedMode = e.target.checked; session = { questions: [] }; nextQuestion(); });
+
+// PWA Registration
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(err => console.log('SW registration failed:', err));
+}
+
+// Start
+loadData(); initRanges(); updateSpotFilter(); updateScoreDisplay(); nextQuestion();
+</script>
+</body>
+</html>
