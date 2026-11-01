@@ -1,6 +1,6 @@
-const CACHE_NAME = 'nlh-trainer-v6';
+const CACHE_NAME = 'nlh-trainer-v8';
 const ASSETS = [
-  './chart_trainer_v6.html',
+  './index.html',
   './manifest.json'
 ];
 
@@ -19,6 +19,7 @@ self.addEventListener('activate', (e) => {
 });
 
 self.addEventListener('fetch', (e) => {
+  if (e.request.method !== 'GET') return; // Не кэшируем PUT/POST запросы (JSONBin)
   e.respondWith(
     caches.match(e.request).then(res => res || fetch(e.request))
   );

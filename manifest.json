@@ -1,7 +1,7 @@
 {
   "name": "NLH Chart Trainer",
   "short_name": "Trainer",
-  "start_url": "./chart_trainer_v6.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#0f172a",
