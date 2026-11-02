@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Тренажер Чартов v8.1 — Cloud Sync</title>
+<title>Тренажер Чартов v8.2 — Cloud Sync</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0f172a">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -58,21 +58,138 @@
   .timer-display { color: #f59e0b; font-weight: bold; display: none; }
   .timer-display.active { display: inline; }
 
-  .question-card { background: #0f172a; border-radius: 12px; padding: 16px; text-align: center; margin-bottom: 14px; border: 1px solid #334155; min-height: 180px; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; }
-  .situation { font-size: 12px; color: #94a3b8; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
-  .situation strong { color: #60a5fa; }
-  .hand-display { display: flex; gap: 12px; justify-content: center; margin-bottom: 12px; min-height: 100px; align-items: center; }
+  /* === НОВЫЙ ДИЗАЙН СТОЛА === */
+  .table-zone {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    max-height: 380px;
+    margin: 10px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .poker-table {
+    width: 85%;
+    height: 65%;
+    background: #152b22; /* Темно-зеленое сукно */
+    border: 10px solid #2d3748;
+    border-radius: 50% / 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotateX(15deg);
+    box-shadow: inset 0 0 40px rgba(0,0,0,0.8), 0 15px 30px rgba(0,0,0,0.6);
+  }
+
+  .seat {
+    position: absolute;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #1e293b;
+    border: 3px solid #475569;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 12px;
+    font-weight: 800;
+    color: #cbd5e1;
+    z-index: 10;
+    transform: translate(-50%, -50%);
+    transition: all 0.3s ease;
+  }
+
+  .seat.opener {
+    border-color: #ef4444;
+    animation: pulse-red 1.5s infinite;
+    color: #fff;
+  }
+
+  @keyframes pulse-red {
+    0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.8); }
+    70% { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+  }
+
+  .dealer-chip {
+    position: absolute;
+    bottom: -5px;
+    right: -5px;
+    background: #f8fafc;
+    color: #0f172a;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    font-size: 11px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 900;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.6);
+    border: 1px solid #cbd5e1;
+    z-index: 15;
+  }
+
+  .hero-seat-container {
+    position: absolute;
+    bottom: 0%;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 20;
+  }
+
+  .hero-cards {
+    display: flex;
+    gap: 8px;
+    position: relative;
+    margin-bottom: 8px;
+  }
+
+  .mini-card {
+    width: 60px;
+    height: 85px;
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    padding-top: 4px;
+    font-size: 26px;
+    font-weight: 800;
+    color: #fff;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    font-family: "Georgia", serif;
+    position: relative;
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+
+  .card-spade  { background: #1e293b; }
+  .card-heart  { background: #ef4444; }
+  .card-diamond{ background: #3b82f6; }
+  .card-club   { background: #22c55e; }
   
-  .playing-card { display: flex; flex-direction: column; justify-content: center; align-items: center; width: 76px; height: 110px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.4), inset 0 0 0 2px rgba(255,255,255,0.1); color: #ffffff; font-family: "Georgia", serif; user-select: none; position: relative; overflow: hidden; }
-  .card-rank { font-size: 38px; font-weight: 800; line-height: 1; text-shadow: 0 2px 4px rgba(0,0,0,0.3); margin-bottom: 2px; }
-  .card-suit { font-size: 34px; line-height: 1; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
-  .playing-card.spades { background: #1e293b; border: 1px solid #475569; }
-  .playing-card.hearts { background: #ef4444; border: 1px solid #fca5a5; }
-  .playing-card.diamonds { background: #3b82f6; border: 1px solid #93c5fd; }
-  .playing-card.clubs { background: #22c55e; border: 1px solid #86efac; }
+  .suit-icon { font-size: 22px; line-height: 1; margin-top: -2px; }
 
-  .range-hint { font-size: 12px; color: #64748b; font-style: italic; margin-top: 8px; }
+  .hero-name {
+    background: #1e293b;
+    border: 2px solid #3b82f6;
+    color: #fff;
+    padding: 4px 20px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 800;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5), 0 0 15px rgba(59, 130, 246, 0.4);
+    position: relative;
+  }
 
+  .range-hint { font-size: 12px; color: #64748b; font-style: italic; margin-top: 10px; margin-bottom: 10px; text-align: center; min-height: 18px; }
+
+  /* === КНОПКИ === */
   .action-buttons { display: flex; gap: 6px; margin-bottom: 10px; }
   .action-buttons button { flex: 1; padding: 14px 4px; border: none; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s; text-transform: uppercase; letter-spacing: 0.5px; }
   .btn-fold { background: #475569; color: white; }
@@ -170,7 +287,7 @@
 <body>
 
 <div class="app">
-  <h1>🃏 Тренажер Чартов v8.1</h1>
+  <h1>🃏 Тренажер Чартов v8.2</h1>
   <div class="subtitle">Cloud Sync · PWA · SRS</div>
 
   <div class="profile-bar">
@@ -208,11 +325,23 @@
     <span class="timer-display" id="timer-display">⏱ 60s</span>
   </div>
 
-  <div class="question-card">
-    <div class="situation" id="situation">Загрузка...</div>
-    <div class="hand-display" id="hand-display"></div>
-    <div class="range-hint" id="range-hint"></div>
+  <!-- НОВЫЙ БЛОК СТОЛА -->
+  <div class="table-zone">
+    <div class="poker-table"></div>
+    <div id="opponents-container"></div>
+
+    <div class="hero-seat-container">
+      <div class="hero-cards" id="hero-cards">
+        <!-- Сюда будут вставляться карты -->
+      </div>
+      <div class="hero-name" id="hero-pos-label">
+        <span id="hero-pos-text">BTN</span>
+        <div class="dealer-chip" id="hero-dealer-chip" style="display:none; top: -8px; right: -8px; bottom: auto;">D</div>
+      </div>
+    </div>
   </div>
+  
+  <div class="range-hint" id="range-hint"></div>
 
   <div class="feedback hidden" id="feedback">—</div>
 
@@ -243,6 +372,7 @@
   <div class="sync-status" id="sync-status">Облако не подключено</div>
 </div>
 
+<!-- Модальные окна остаются без изменений -->
 <div class="modal" id="session-modal">
   <div class="modal-content">
     <h2>🏁 Сессия завершена</h2>
@@ -466,7 +596,6 @@ async function pullFromCloud() {
     const json = await res.json();
     
     if (json.record && Object.keys(json.record).length > 0) {
-      // v8.1: защита от данных более новой версии
       if (json.record.schemaVersion && json.record.schemaVersion > APP_SCHEMA_VERSION) {
         alert('В облаке данные из более новой версии (' + json.record.schemaVersion + '). Обнови приложение, чтобы не потерять их.');
       } else {
@@ -476,13 +605,11 @@ async function pullFromCloud() {
         if (json.record.mistakes) mistakes = json.record.mistakes;
         if (json.record.sessionHistory) sessionHistory = json.record.sessionHistory;
 
-        // v8.1: сохраняем БЕЗ triggerSync — защита от гонки pull→push
         localStorage.setItem(CHARTS_KEY, JSON.stringify(profiles));
         localStorage.setItem(STATS_KEY, JSON.stringify(stats));
         localStorage.setItem(MISTAKES_KEY, JSON.stringify(mistakes));
         localStorage.setItem(HISTORY_KEY, JSON.stringify(sessionHistory));
 
-        // v8.1: сбрасываем текущую сессию, чтобы не «повисла» на старых данных
         session = { questions: [] };
         currentSessionMistakes = [];
 
@@ -629,7 +756,6 @@ ranks.forEach((r1, i) => {
   });
 });
 
-// v8.1: общие помощники для «умного» BB call
 const BB_TRASH_HANDS = expandRange('32o, 42o, 52o, 62o, 72o, 82o, 92o, 43o, 53o, 63o, 73o, 83o, 93o');
 
 function computeBBCall(threeset) {
@@ -701,6 +827,43 @@ function startSpeedTimer() {
   }, 1000);
 }
 
+// === НОВАЯ ОТРИСОВКА СТОЛА ===
+const posOrder = ['EP', 'MP', 'CO', 'BTN', 'SB', 'BB'];
+
+function renderTableSeats(heroPos, openerPos) {
+  const container = document.getElementById('opponents-container');
+  container.innerHTML = '';
+  const heroIdx = posOrder.indexOf(heroPos);
+  const rx = 46; 
+  const ry = 42;
+
+  for (let i = 1; i <= 5; i++) {
+    const oppPos = posOrder[(heroIdx + i) % 6];
+    const angleDeg = 90 + (i * 60);
+    const angleRad = angleDeg * Math.PI / 180;
+    const x = 50 + rx * Math.cos(angleRad);
+    const y = 50 + ry * Math.sin(angleRad);
+
+    const seat = document.createElement('div');
+    seat.className = 'seat';
+    seat.textContent = oppPos;
+    seat.style.left = x + '%';
+    seat.style.top = y + '%';
+
+    if (oppPos === openerPos) {
+      seat.classList.add('opener');
+    }
+
+    if (oppPos === 'BTN') {
+      const chip = document.createElement('div');
+      chip.className = 'dealer-chip';
+      chip.textContent = 'D';
+      seat.appendChild(chip);
+    }
+    container.appendChild(seat);
+  }
+}
+
 function nextQuestion() {
   answered = false;
   document.getElementById('feedback').classList.add('hidden');
@@ -735,7 +898,6 @@ function nextQuestion() {
     rangeSet = THREEBET_RANGES[position];
   } else {
     if (!position) position = pickRandom(Object.keys(BB_RANGES));
-    // v8.1: hard mode для BB видит границы всей защиты (3bet ∪ call)
     rangeSet = new Set([...BB_RANGES[position]['3bet'], ...BB_RANGES[position]['call']]);
   }
 
@@ -753,29 +915,70 @@ function nextQuestion() {
     hand = pickRandom(ALL_HANDS);
   }
 
+  let heroPos = position;
+  let openerPos = null;
+
   if (type === 'rfi') {
     const isRaise = rangeSet.has(hand);
     currentQ = { type, position, hand, isRaise };
-    document.getElementById('situation').innerHTML = `Позиция: <strong>${position}</strong> — Открывать?`;
     document.getElementById('btn-fold').style.display = '';
     document.getElementById('btn-raise').style.display = '';
   } else if (type === '3bet') {
     const is3bet = rangeSet.has(hand);
     currentQ = { type, position, hand, is3bet };
-    document.getElementById('situation').innerHTML = `Опен от <strong>${position.replace('vs ', '')}</strong> — 3-бет?`;
     document.getElementById('btn-fold').style.display = '';
     document.getElementById('btn-3bet').style.display = '';
+    heroPos = 'BB'; 
+    openerPos = position.replace('vs ', '');
   } else {
     const is3bet = BB_RANGES[position]['3bet'].has(hand);
     const isCall = BB_RANGES[position]['call'].has(hand);
     currentQ = { type, position, hand, is3bet, isCall };
-    document.getElementById('situation').innerHTML = `BB vs <strong>${position.replace('vs ', '')}</strong> — защита?`;
     document.getElementById('btn-fold').style.display = '';
     document.getElementById('btn-call').style.display = '';
     document.getElementById('btn-3bet').style.display = '';
+    heroPos = 'BB';
+    openerPos = position.replace('vs ', '');
   }
 
-  document.getElementById('hand-display').innerHTML = displayHand(hand);
+  // Отрисовка нового стола
+  document.getElementById('hero-pos-text').textContent = heroPos;
+  document.getElementById('hero-cards').innerHTML = displayHand(hand);
+  
+  if (heroPos === 'BTN') {
+    document.getElementById('hero-dealer-chip').style.display = 'flex';
+  } else {
+    document.getElementById('hero-dealer-chip').style.display = 'none';
+  }
+
+  renderTableSeats(heroPos, openerPos);
+}
+
+// === НОВОЕ ОТОБРАЖЕНИЕ КАРТ ===
+function displayHand(handStr) {
+  const m = handStr.match(/^([AKQJT98765432])([AKQJT98765432])([so]?)$/);
+  if (!m) return `<span>${handStr}</span>`;
+  const [, r1, r2, suit] = m;
+
+  const suits = ['♠','♥','♦','♣'];
+  const suitClasses = ['card-spade', 'card-heart', 'card-diamond', 'card-club'];
+
+  const makeMiniCard = (r, sIdx) => {
+    return `<div class="mini-card ${suitClasses[sIdx]}">${r}<span class="suit-icon">${suits[sIdx]}</span></div>`;
+  };
+
+  if (r1 === r2) {
+    const s1 = Math.floor(Math.random() * 4); let s2 = Math.floor(Math.random() * 4);
+    while (s2 === s1) s2 = Math.floor(Math.random() * 4);
+    return makeMiniCard(r1, s1) + makeMiniCard(r2, s2);
+  }
+  if (suit === 's') {
+    const s = Math.floor(Math.random() * 4);
+    return makeMiniCard(r1, s) + makeMiniCard(r2, s);
+  }
+  const s1 = Math.floor(Math.random() * 4); let s2 = Math.floor(Math.random() * 4);
+  while (s2 === s1) s2 = Math.floor(Math.random() * 4);
+  return makeMiniCard(r1, s1) + makeMiniCard(r2, s2);
 }
 
 function showHint() {
@@ -877,7 +1080,6 @@ function skip() {
   renderGrid(currentQ);
   ['btn-fold', 'btn-call', 'btn-raise', 'btn-3bet'].forEach(id => document.getElementById(id).disabled = true);
 
-  // v8.1: скип = ошибка, учитывается в stats и SRS
   stats.total++;
   stats.streak = 0;
   const skipKey = `${currentQ.type}_${currentQ.position}_${currentQ.hand}`;
@@ -898,23 +1100,6 @@ function skip() {
 }
 
 // ============ UI RENDERING ============
-const suits = ['♠','♥','♦','♣'], suitClasses = ['spades', 'hearts', 'diamonds', 'clubs'];
-function displayHand(handStr) {
-  const m = handStr.match(/^([AKQJT98765432])([AKQJT98765432])([so]?)$/);
-  if (!m) return `<span>${handStr}</span>`;
-  const [, r1, r2, suit] = m;
-  const makeCard = (r, s) => `<div class="playing-card ${suitClasses[s]}"><div class="card-rank">${r}</div><div class="card-suit">${suits[s]}</div></div>`;
-  if (r1 === r2) {
-    const s1 = Math.floor(Math.random() * 4); let s2 = Math.floor(Math.random() * 4);
-    while (s2 === s1) s2 = Math.floor(Math.random() * 4);
-    return makeCard(r1, s1) + makeCard(r2, s2);
-  }
-  if (suit === 's') { const s = Math.floor(Math.random() * 4); return makeCard(r1, s) + makeCard(r2, s); }
-  const s1 = Math.floor(Math.random() * 4); let s2 = Math.floor(Math.random() * 4);
-  while (s2 === s1) s2 = Math.floor(Math.random() * 4);
-  return makeCard(r1, s1) + makeCard(r2, s2);
-}
-
 function renderGrid(q) {
   const wrap = document.getElementById('grid-wrap'), grid = document.getElementById('grid'), legend = document.getElementById('grid-legend');
   grid.innerHTML = ''; legend.innerHTML = '';
@@ -987,7 +1172,6 @@ function closeSession() { document.getElementById('session-modal').classList.rem
 function newSession() { document.getElementById('session-modal').classList.remove('open'); session = { questions: [] }; currentSessionMistakes = []; updateScoreDisplay(); nextQuestion(); }
 
 // ============ STATS & CHART ============
-// v8.1: экранирование HTML для защиты от XSS через импортированные ключи
 function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 function showStats() {
@@ -1053,7 +1237,6 @@ function drawChart() {
     if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
   });
   ctx.stroke();
-  // v8.1: фикс цвета точек — fillStyle теперь сбрасывается внутри цикла
   data.forEach((d, i) => {
     const x = padding + i * stepX;
     const y = h - padding - (d.acc / 100) * graphH;
@@ -1166,7 +1349,6 @@ function setBrush(brush, btn) {
 
 let isDrawing = false;
 window.addEventListener('pointerup', () => { isDrawing = false; });
-// v8.1: страховка от залипания isDrawing при pointercancel (iOS)
 window.addEventListener('pointercancel', () => { isDrawing = false; });
 
 function renderEditorGrid() {
@@ -1235,7 +1417,6 @@ function saveProfile() {
   const newProfile = { rfi: {}, '3bet': {}, bb: {} };
   Object.keys(editorData.rfi).forEach(pos => newProfile.rfi[pos] = Array.from(editorData.rfi[pos]).join(', '));
   Object.keys(editorData['3bet']).forEach(pos => newProfile['3bet'][pos] = Array.from(editorData['3bet'][pos]).join(', '));
-  // v8.1: сохраняем __COMPUTED__, если call совпадает с расчётным
   Object.keys(editorData.bb).forEach(pos => {
     const data = editorData.bb[pos];
     const expected = computeBBCall(data['3bet']);
@@ -1264,7 +1445,7 @@ function deleteProfile() {
 
 // ============ EXPORT / IMPORT ============
 function exportAll() {
-  const payload = { app: 'chart-trainer', version: 'v8.1', schemaVersion: APP_SCHEMA_VERSION, exportedAt: new Date().toISOString(), profiles, activeProfileName, stats, mistakes, sessionHistory };
+  const payload = { app: 'chart-trainer', version: 'v8.2', schemaVersion: APP_SCHEMA_VERSION, exportedAt: new Date().toISOString(), profiles, activeProfileName, stats, mistakes, sessionHistory };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob); const d = new Date(); const pad = n => String(n).padStart(2, '0');
   const a = document.createElement('a'); a.href = url; a.download = `trainer_backup_${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}.json`;
@@ -1309,7 +1490,6 @@ function changeProfile(name) {
   session = { questions: [] }; updateScoreDisplay(); nextQuestion();
 }
 
-// v8.1: сохранение/восстановление UI-настроек (Hard/SRS/Speed)
 function loadUIPrefs() {
   try {
     const p = JSON.parse(localStorage.getItem(UI_PREFS_KEY) || '{}');

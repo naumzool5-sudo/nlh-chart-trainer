@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nlh-trainer-v8.1';
+const CACHE_NAME = 'nlh-trainer-v8.2';
 const ASSETS = [
   './index.html',
   './manifest.json',
@@ -26,13 +26,13 @@ self.addEventListener('fetch', (e) => {
 
   const url = new URL(e.request.url);
 
-  // 1. JSONBin API — только сеть, никогда из кэша (v8.1)
+  // 1. JSONBin API — только сеть, никогда из кэша
   if (url.hostname === 'api.jsonbin.io') {
     e.respondWith(fetch(e.request));
     return;
   }
 
-  // 2. Навигация (index.html) — network-first + offline fallback (v8.1)
+  // 2. Навигация (index.html) — network-first + offline fallback
   if (e.request.mode === 'navigate') {
     e.respondWith(
       fetch(e.request)
