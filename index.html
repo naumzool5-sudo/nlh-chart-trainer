@@ -3,9 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Тренажер Чартов v8.0 — Cloud Sync</title>
+<title>Тренажер Чартов v8.1 — Cloud Sync</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0f172a">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Trainer">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   body {
@@ -166,7 +170,7 @@
 <body>
 
 <div class="app">
-  <h1>🃏 Тренажер Чартов v8.0</h1>
+  <h1>🃏 Тренажер Чартов v8.1</h1>
   <div class="subtitle">Cloud Sync · PWA · SRS</div>
 
   <div class="profile-bar">
@@ -349,11 +353,13 @@ const DEFAULT_CHARTS = {
   }
 };
 
+const APP_SCHEMA_VERSION = 8;
 const CHARTS_KEY = 'chartTrainerData';
 const STATS_KEY = 'chartTrainerV6';
 const MISTAKES_KEY = 'chartTrainerMistakes';
 const HISTORY_KEY = 'chartTrainerHistory';
 const SYNC_KEY = 'chartTrainerSyncConfig';
+const UI_PREFS_KEY = 'chartTrainerUIPrefs';
 
 let profiles = {};
 let activeProfileName = '';
@@ -460,18 +466,32 @@ async function pullFromCloud() {
     const json = await res.json();
     
     if (json.record && Object.keys(json.record).length > 0) {
-      if (json.record.profiles) profiles = json.record.profiles;
-      if (json.record.activeProfileName) activeProfileName = json.record.activeProfileName;
-      if (json.record.stats) stats = json.record.stats;
-      if (json.record.mistakes) mistakes = json.record.mistakes;
-      if (json.record.sessionHistory) sessionHistory = json.record.sessionHistory;
-      
-      saveLocally();
-      renderProfileSelector();
-      initRanges();
-      updateSpotFilter();
-      updateScoreDisplay();
-      nextQuestion();
+      // v8.1: защита от данных более новой версии
+      if (json.record.schemaVersion && json.record.schemaVersion > APP_SCHEMA_VERSION) {
+        alert('В облаке данные из более новой версии (' + json.record.schemaVersion + '). Обнови приложение, чтобы не потерять их.');
+      } else {
+        if (json.record.profiles) profiles = json.record.profiles;
+        if (json.record.activeProfileName) activeProfileName = json.record.activeProfileName;
+        if (json.record.stats) stats = json.record.stats;
+        if (json.record.mistakes) mistakes = json.record.mistakes;
+        if (json.record.sessionHistory) sessionHistory = json.record.sessionHistory;
+
+        // v8.1: сохраняем БЕЗ triggerSync — защита от гонки pull→push
+        localStorage.setItem(CHARTS_KEY, JSON.stringify(profiles));
+        localStorage.setItem(STATS_KEY, JSON.stringify(stats));
+        localStorage.setItem(MISTAKES_KEY, JSON.stringify(mistakes));
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(sessionHistory));
+
+        // v8.1: сбрасываем текущую сессию, чтобы не «повисла» на старых данных
+        session = { questions: [] };
+        currentSessionMistakes = [];
+
+        renderProfileSelector();
+        initRanges();
+        updateSpotFilter();
+        updateScoreDisplay();
+        nextQuestion();
+      }
     }
     document.getElementById('sync-status').textContent = '☁️ Синхронизировано';
   } catch (err) {
@@ -488,7 +508,7 @@ async function pushToCloud(force = false) {
   isSyncing = true;
   if (force) document.getElementById('sync-status').textContent = '☁️ Отправка...';
 
-  const payload = { profiles, activeProfileName, stats, mistakes, sessionHistory };
+  const payload = { schemaVersion: APP_SCHEMA_VERSION, profiles, activeProfileName, stats, mistakes, sessionHistory };
 
   try {
     const res = await fetch(`https://api.jsonbin.io/v3/b/${syncConfig.binId}`, {
@@ -609,6 +629,21 @@ ranks.forEach((r1, i) => {
   });
 });
 
+// v8.1: общие помощники для «умного» BB call
+const BB_TRASH_HANDS = expandRange('32o, 42o, 52o, 62o, 72o, 82o, 92o, 43o, 53o, 63o, 73o, 83o, 93o');
+
+function computeBBCall(threeset) {
+  const callset = new Set();
+  ALL_HANDS.forEach(h => { if (!threeset.has(h) && !BB_TRASH_HANDS.has(h)) callset.add(h); });
+  return callset;
+}
+
+function setsEqual(a, b) {
+  if (a.size !== b.size) return false;
+  for (const x of a) if (!b.has(x)) return false;
+  return true;
+}
+
 let RFI_RANGES = {}, THREEBET_RANGES = {}, BB_RANGES = {}, currentRFI = {}, current3BET = {}, currentBB = {};
 
 function initRanges() {
@@ -624,9 +659,7 @@ function initRanges() {
     const threeset = expandRange(def['3bet']);
     let callset;
     if (def['call'] === '__COMPUTED__') {
-      const folds = expandRange('32o, 42o, 52o, 62o, 72o, 82o, 92o, 43o, 53o, 63o, 73o, 83o, 93o');
-      callset = new Set();
-      ALL_HANDS.forEach(h => { if (!threeset.has(h) && !folds.has(h)) callset.add(h); });
+      callset = computeBBCall(threeset);
     } else { callset = expandRange(def['call']); }
     BB_RANGES[pos] = { '3bet': threeset, 'call': callset };
   });
@@ -702,7 +735,8 @@ function nextQuestion() {
     rangeSet = THREEBET_RANGES[position];
   } else {
     if (!position) position = pickRandom(Object.keys(BB_RANGES));
-    rangeSet = BB_RANGES[position]['3bet'];
+    // v8.1: hard mode для BB видит границы всей защиты (3bet ∪ call)
+    rangeSet = new Set([...BB_RANGES[position]['3bet'], ...BB_RANGES[position]['call']]);
   }
 
   let hand;
@@ -842,6 +876,19 @@ function skip() {
   
   renderGrid(currentQ);
   ['btn-fold', 'btn-call', 'btn-raise', 'btn-3bet'].forEach(id => document.getElementById(id).disabled = true);
+
+  // v8.1: скип = ошибка, учитывается в stats и SRS
+  stats.total++;
+  stats.streak = 0;
+  const skipKey = `${currentQ.type}_${currentQ.position}_${currentQ.hand}`;
+  mistakes[skipKey] = (mistakes[skipKey] || 0) + 1;
+  currentSessionMistakes.push(currentQ.hand);
+  if (!stats.byMode[currentQ.type]) stats.byMode[currentQ.type] = { t: 0, c: 0 };
+  stats.byMode[currentQ.type].t++;
+  const skipByKey = currentQ.type + '_' + currentQ.position;
+  if (!stats.byKey[skipByKey]) stats.byKey[skipByKey] = { t: 0, c: 0 };
+  stats.byKey[skipByKey].t++;
+  saveLocally();
   
   session.questions.push({ type: currentQ.type, position: currentQ.position, hand: currentQ.hand, correct: false, skipped: true });
   updateScoreDisplay();
@@ -940,6 +987,9 @@ function closeSession() { document.getElementById('session-modal').classList.rem
 function newSession() { document.getElementById('session-modal').classList.remove('open'); session = { questions: [] }; currentSessionMistakes = []; updateScoreDisplay(); nextQuestion(); }
 
 // ============ STATS & CHART ============
+// v8.1: экранирование HTML для защиты от XSS через импортированные ключи
+function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
 function showStats() {
   const acc = stats.total > 0 ? Math.round(stats.correct / stats.total * 100) : 0;
   const typeNames = { rfi: 'RFI', '3bet': '3-Bet', bb: 'BB Defense' };
@@ -953,7 +1003,7 @@ function showStats() {
     const s = stats.byKey[k];
     const a = Math.round(s.c / s.t * 100);
     const [type, ...pos] = k.split('_');
-    weakestHtml += `<div class="stat-row"><span class="label">${typeNames[type] || type} ${pos.join('_')}</span><span class="val bad">${s.c} / ${s.t} (${a}%)</span></div>`;
+    weakestHtml += `<div class="stat-row"><span class="label">${escapeHtml(typeNames[type] || type)} ${escapeHtml(pos.join('_'))}</span><span class="val bad">${s.c} / ${s.t} (${a}%)</span></div>`;
   });
   if (!weakestHtml) weakestHtml = '<div class="stat-row"><span class="label">Мало данных</span></div>';
 
@@ -1003,10 +1053,11 @@ function drawChart() {
     if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
   });
   ctx.stroke();
-  ctx.fillStyle = '#10b981';
+  // v8.1: фикс цвета точек — fillStyle теперь сбрасывается внутри цикла
   data.forEach((d, i) => {
     const x = padding + i * stepX;
     const y = h - padding - (d.acc / 100) * graphH;
+    ctx.fillStyle = '#10b981';
     ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#f1f5f9'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center';
     ctx.fillText(d.acc + '%', x, y - 8);
@@ -1035,9 +1086,7 @@ function openEditor(isNew = false) {
       const threeset = expandRange(def['3bet']);
       let callset;
       if (def['call'] === '__COMPUTED__') {
-        const folds = expandRange('32o, 42o, 52o, 62o, 72o, 82o, 92o, 43o, 53o, 63o, 73o, 83o, 93o');
-        callset = new Set();
-        ALL_HANDS.forEach(h => { if (!threeset.has(h) && !folds.has(h)) callset.add(h); });
+        callset = computeBBCall(threeset);
       } else { callset = expandRange(def['call']); }
       editorData.bb[pos] = { '3bet': threeset, 'call': callset };
     });
@@ -1117,6 +1166,8 @@ function setBrush(brush, btn) {
 
 let isDrawing = false;
 window.addEventListener('pointerup', () => { isDrawing = false; });
+// v8.1: страховка от залипания isDrawing при pointercancel (iOS)
+window.addEventListener('pointercancel', () => { isDrawing = false; });
 
 function renderEditorGrid() {
   const grid = document.getElementById('editor-grid');
@@ -1184,7 +1235,13 @@ function saveProfile() {
   const newProfile = { rfi: {}, '3bet': {}, bb: {} };
   Object.keys(editorData.rfi).forEach(pos => newProfile.rfi[pos] = Array.from(editorData.rfi[pos]).join(', '));
   Object.keys(editorData['3bet']).forEach(pos => newProfile['3bet'][pos] = Array.from(editorData['3bet'][pos]).join(', '));
-  Object.keys(editorData.bb).forEach(pos => newProfile.bb[pos] = { '3bet': Array.from(editorData.bb[pos]['3bet']).join(', '), 'call': Array.from(editorData.bb[pos]['call']).join(', ') });
+  // v8.1: сохраняем __COMPUTED__, если call совпадает с расчётным
+  Object.keys(editorData.bb).forEach(pos => {
+    const data = editorData.bb[pos];
+    const expected = computeBBCall(data['3bet']);
+    const callVal = setsEqual(data['call'], expected) ? '__COMPUTED__' : Array.from(data['call']).join(', ');
+    newProfile.bb[pos] = { '3bet': Array.from(data['3bet']).join(', '), 'call': callVal };
+  });
 
   if (editorOriginalName && newName !== editorOriginalName) delete profiles[editorOriginalName];
   profiles[newName] = newProfile; activeProfileName = newName; editorOriginalName = newName;
@@ -1207,7 +1264,7 @@ function deleteProfile() {
 
 // ============ EXPORT / IMPORT ============
 function exportAll() {
-  const payload = { app: 'chart-trainer', version: 'v8.0', exportedAt: new Date().toISOString(), profiles, activeProfileName, stats, mistakes, sessionHistory };
+  const payload = { app: 'chart-trainer', version: 'v8.1', schemaVersion: APP_SCHEMA_VERSION, exportedAt: new Date().toISOString(), profiles, activeProfileName, stats, mistakes, sessionHistory };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob); const d = new Date(); const pad = n => String(n).padStart(2, '0');
   const a = document.createElement('a'); a.href = url; a.download = `trainer_backup_${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}.json`;
@@ -1252,6 +1309,22 @@ function changeProfile(name) {
   session = { questions: [] }; updateScoreDisplay(); nextQuestion();
 }
 
+// v8.1: сохранение/восстановление UI-настроек (Hard/SRS/Speed)
+function loadUIPrefs() {
+  try {
+    const p = JSON.parse(localStorage.getItem(UI_PREFS_KEY) || '{}');
+    hardMode = !!p.hardMode;
+    srsMode = p.srsMode !== false;
+    speedMode = !!p.speedMode;
+  } catch(e) {}
+  document.getElementById('hard-mode').checked = hardMode;
+  document.getElementById('srs-mode').checked = srsMode;
+  document.getElementById('speed-mode').checked = speedMode;
+}
+function saveUIPrefs() {
+  localStorage.setItem(UI_PREFS_KEY, JSON.stringify({ hardMode, srsMode, speedMode }));
+}
+
 document.querySelectorAll('.modes button').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.modes button').forEach(b => b.classList.remove('active'));
@@ -1261,9 +1334,9 @@ document.querySelectorAll('.modes button').forEach(btn => {
 });
 
 document.getElementById('spot-filter').addEventListener('change', (e) => { spotFilter = e.target.value; session = { questions: [] }; updateScoreDisplay(); nextQuestion(); });
-document.getElementById('hard-mode').addEventListener('change', (e) => { hardMode = e.target.checked; nextQuestion(); });
-document.getElementById('srs-mode').addEventListener('change', (e) => { srsMode = e.target.checked; nextQuestion(); });
-document.getElementById('speed-mode').addEventListener('change', (e) => { speedMode = e.target.checked; session = { questions: [] }; nextQuestion(); });
+document.getElementById('hard-mode').addEventListener('change', (e) => { hardMode = e.target.checked; saveUIPrefs(); nextQuestion(); });
+document.getElementById('srs-mode').addEventListener('change', (e) => { srsMode = e.target.checked; saveUIPrefs(); nextQuestion(); });
+document.getElementById('speed-mode').addEventListener('change', (e) => { speedMode = e.target.checked; saveUIPrefs(); session = { questions: [] }; nextQuestion(); });
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(err => console.log('SW registration failed:', err));
@@ -1302,7 +1375,7 @@ function getBoundaryHands(rangeSet) {
 }
 
 // Запуск
-loadLocalData(); initSync(); initRanges(); updateSpotFilter(); updateScoreDisplay(); nextQuestion();
+loadLocalData(); loadUIPrefs(); initSync(); initRanges(); updateSpotFilter(); updateScoreDisplay(); nextQuestion();
 </script>
 </body>
 </html>

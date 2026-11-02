@@ -1,7 +1,10 @@
-const CACHE_NAME = 'nlh-trainer-v8';
+const CACHE_NAME = 'nlh-trainer-v8.1';
 const ASSETS = [
   './index.html',
-  './manifest.json'
+  './manifest.json',
+  './icon-192.png',
+  './icon-512.png',
+  './icon-maskable-512.png'
 ];
 
 self.addEventListener('install', (e) => {
@@ -19,7 +22,31 @@ self.addEventListener('activate', (e) => {
 });
 
 self.addEventListener('fetch', (e) => {
-  if (e.request.method !== 'GET') return; // Не кэшируем PUT/POST запросы (JSONBin)
+  if (e.request.method !== 'GET') return;
+
+  const url = new URL(e.request.url);
+
+  // 1. JSONBin API — только сеть, никогда из кэша (v8.1)
+  if (url.hostname === 'api.jsonbin.io') {
+    e.respondWith(fetch(e.request));
+    return;
+  }
+
+  // 2. Навигация (index.html) — network-first + offline fallback (v8.1)
+  if (e.request.mode === 'navigate') {
+    e.respondWith(
+      fetch(e.request)
+        .then(res => {
+          const copy = res.clone();
+          caches.open(CACHE_NAME).then(c => c.put(e.request, copy)).catch(() => {});
+          return res;
+        })
+        .catch(() => caches.match('./index.html'))
+    );
+    return;
+  }
+
+  // 3. Статика (manifest, иконки) — cache-first
   e.respondWith(
     caches.match(e.request).then(res => res || fetch(e.request))
   );

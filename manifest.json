@@ -1,16 +1,19 @@
 {
+  "id": "/",
   "name": "NLH Chart Trainer",
   "short_name": "Trainer",
+  "lang": "ru",
   "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#0f172a",
   "theme_color": "#0f172a",
-  "description": "Тренажер префлоп чартов для NLH",
+  "description": "Тренажер префлоп чартов для NLH: RFI, 3-Bet, BB Defense",
+  "categories": ["education", "games"],
   "icons": [
-    {
-      "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzFmMjkzNyIgcng9IjIwIi8+PHBhdGggZD0iTTMwIDMwIEw3MCAzMCBMNzAgNzAgTDMwIDcwIFoiIGZpbGw9IiMzYjgyZjYiLz48L3N2Zz4=",
-      "sizes": "192x192",
-      "type": "image/svg+xml"
-    }
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }
