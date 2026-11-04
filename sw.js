@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nlh-trainer-v8.2';
+const CACHE_NAME = 'nlh-trainer-v8.5';
 const ASSETS = [
   './index.html',
   './manifest.json',

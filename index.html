@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Тренажер Чартов v8.4 — Compact UI</title>
+<title>Тренажер Чартов v8.5 — Compact UI</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0f172a">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -26,22 +26,11 @@
   .subtitle { font-size: 11px; text-align: center; color: #94a3b8; margin-bottom: 12px; }
   #profile-badge { color: #60a5fa; font-weight: 600; }
 
-  /* === ТОГГЛ НАСТРОЕК === */
   .settings-toggle {
-    width: 100%;
-    padding: 10px 14px;
-    background: #0f172a;
-    color: #94a3b8;
-    border: 1px solid #334155;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-    transition: background 0.15s;
+    width: 100%; padding: 10px 14px; background: #0f172a; color: #94a3b8;
+    border: 1px solid #334155; border-radius: 8px; font-size: 13px; font-weight: 600;
+    cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 12px; transition: background 0.15s;
   }
   .settings-toggle:hover { background: #1e293b; }
   .settings-toggle-chevron { transition: transform 0.2s; display: inline-block; font-size: 10px; }
@@ -49,6 +38,9 @@
 
   .settings-panel { display: none; margin-bottom: 12px; }
   .settings-panel.open { display: block; }
+
+  .app.view-range > .settings-toggle,
+  .app.view-range > .settings-panel { display: none !important; }
 
   .profile-bar { display: flex; gap: 6px; margin-bottom: 12px; align-items: stretch; }
   .profile-bar select {
@@ -85,136 +77,57 @@
   .timer-display { color: #f59e0b; font-weight: bold; display: none; }
   .timer-display.active { display: inline; }
 
-  /* === ДИЗАЙН СТОЛА === */
   .table-zone {
-    position: relative;
-    width: 100%;
-    aspect-ratio: 1 / 1;
-    max-height: 380px;
-    margin: 10px 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    position: relative; width: 100%; aspect-ratio: 1 / 1; max-height: 380px;
+    margin: 10px 0; display: flex; justify-content: center; align-items: center;
   }
-
   .poker-table {
-    width: 85%;
-    height: 65%;
-    background: #152b22;
-    border: 10px solid #2d3748;
-    border-radius: 50% / 50%;
-    position: absolute;
-    top: 50%;
-    left: 50%;
+    width: 85%; height: 65%; background: #152b22; border: 10px solid #2d3748;
+    border-radius: 50% / 50%; position: absolute; top: 50%; left: 50%;
     transform: translate(-50%, -50%) rotateX(15deg);
     box-shadow: inset 0 0 40px rgba(0,0,0,0.8), 0 15px 30px rgba(0,0,0,0.6);
   }
-
   .seat {
-    position: absolute;
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: #1e293b;
-    border: 3px solid #475569;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 12px;
-    font-weight: 800;
-    color: #cbd5e1;
-    z-index: 10;
-    transform: translate(-50%, -50%);
+    position: absolute; width: 48px; height: 48px; border-radius: 50%;
+    background: #1e293b; border: 3px solid #475569; display: flex;
+    justify-content: center; align-items: center; font-size: 12px; font-weight: 800;
+    color: #cbd5e1; z-index: 10; transform: translate(-50%, -50%);
     transition: all 0.3s ease;
   }
-
-  .seat.opener {
-    border-color: #ef4444;
-    animation: pulse-red 1.5s infinite;
-    color: #fff;
-  }
-
+  .seat.opener { border-color: #ef4444; animation: pulse-red 1.5s infinite; color: #fff; }
   @keyframes pulse-red {
     0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.8); }
     70% { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
     100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
   }
-
   .dealer-chip {
-    position: absolute;
-    bottom: -5px;
-    right: -5px;
-    background: #f8fafc;
-    color: #0f172a;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    font-size: 11px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-weight: 900;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.6);
-    border: 1px solid #cbd5e1;
-    z-index: 15;
+    position: absolute; bottom: -5px; right: -5px; background: #f8fafc; color: #0f172a;
+    width: 18px; height: 18px; border-radius: 50%; font-size: 11px;
+    display: flex; justify-content: center; align-items: center; font-weight: 900;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.6); border: 1px solid #cbd5e1; z-index: 15;
   }
-
   .hero-seat-container {
-    position: absolute;
-    bottom: 0%;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    z-index: 20;
+    position: absolute; bottom: 0%; left: 50%; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; z-index: 20;
   }
-
-  .hero-cards {
-    display: flex;
-    gap: 8px;
-    position: relative;
-    margin-bottom: 8px;
-  }
-
+  .hero-cards { display: flex; gap: 8px; position: relative; margin-bottom: 8px; }
   .mini-card {
-    width: 60px;
-    height: 85px;
-    border-radius: 6px;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: center;
-    padding-top: 4px;
-    font-size: 26px;
-    font-weight: 800;
-    color: #fff;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-    font-family: "Georgia", serif;
-    position: relative;
-    border: 1px solid rgba(255,255,255,0.2);
+    width: 60px; height: 85px; border-radius: 6px; display: flex; flex-direction: column;
+    justify-content: flex-start; align-items: center; padding-top: 4px; font-size: 26px;
+    font-weight: 800; color: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    font-family: "Georgia", serif; position: relative; border: 1px solid rgba(255,255,255,0.2);
   }
-
   .card-spade  { background: #1e293b; }
   .card-heart  { background: #ef4444; }
   .card-diamond{ background: #3b82f6; }
   .card-club   { background: #22c55e; }
-  
   .suit-icon { font-size: 22px; line-height: 1; margin-top: -2px; }
-
   .hero-name {
-    background: #1e293b;
-    border: 2px solid #3b82f6;
-    color: #fff;
-    padding: 4px 20px;
-    border-radius: 12px;
-    font-size: 14px;
-    font-weight: 800;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.5), 0 0 15px rgba(59, 130, 246, 0.4);
-    position: relative;
+    background: #1e293b; border: 2px solid #3b82f6; color: #fff; padding: 4px 20px;
+    border-radius: 12px; font-size: 14px; font-weight: 800;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5), 0 0 15px rgba(59, 130, 246, 0.4); position: relative;
   }
 
-  /* === КНОПКИ === */
   .action-buttons { display: flex; gap: 6px; margin-bottom: 10px; }
   .action-buttons button { flex: 1; padding: 14px 4px; border: none; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s; text-transform: uppercase; letter-spacing: 0.5px; }
   .btn-fold { background: #475569; color: white; }
@@ -232,23 +145,9 @@
   .feedback.skip { background: rgba(148,163,184,0.15); color: #94a3b8; border: 1px solid rgba(148,163,184,0.3); }
   .feedback.hidden { visibility: hidden; }
 
-  /* === ПАНЕЛЬ RANGES / NEXT === */
-  .answer-nav {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 12px;
-  }
+  .answer-nav { display: flex; gap: 8px; margin-bottom: 12px; }
   .answer-nav.hidden { display: none; }
-  .answer-nav button {
-    flex: 1;
-    padding: 14px;
-    border: none;
-    border-radius: 10px;
-    font-size: 15px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
+  .answer-nav button { flex: 1; padding: 14px; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; transition: background 0.15s; }
   .btn-ranges-view { background: #334155; color: #cbd5e1; }
   .btn-ranges-view:hover { background: #475569; }
   .btn-ranges-view.active { background: #10b981; color: white; }
@@ -265,7 +164,6 @@
   .grid-cell.in-3bet { background: #8b5cf6; color: white; }
   .grid-cell.in-call { background: #f59e0b; color: white; }
   .grid-cell.current { box-shadow: 0 0 0 2px #f1f5f9 inset; z-index: 2; }
-  
   .grid-legend { display: flex; gap: 10px; font-size: 10px; color: #94a3b8; flex-wrap: wrap; justify-content: center; }
   .grid-legend .dot { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
 
@@ -275,10 +173,98 @@
   .tools { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
   .tools button { flex: 1; min-width: 80px; padding: 8px; background: #334155; color: #cbd5e1; border: none; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; transition: background 0.15s; }
   .tools button:hover { background: #475569; }
-  
+
+  .mode-switch { display: flex; gap: 8px; margin-top: 12px; margin-bottom: 8px; }
+  .mode-switch button {
+    flex: 1; padding: 10px; background: #0f172a; color: #94a3b8;
+    border: 1px solid #334155; border-radius: 8px; font-size: 13px;
+    font-weight: 700; cursor: pointer; transition: all 0.15s;
+  }
+  .mode-switch button.active { background: #3b82f6; color: white; border-color: #3b82f6; }
+  .mode-switch button:hover:not(.active) { background: #1e293b; color: #f1f5f9; }
+
   .sync-status { font-size: 10px; text-align: center; margin-top: 10px; color: #64748b; }
   .sync-status.ok { color: #10b981; }
   .sync-status.err { color: #ef4444; }
+  .powered-by { text-align: center; font-size: 10px; color: #475569; margin-top: 8px; letter-spacing: 0.3px; }
+
+  /* === RANGE BUILDER (13×13) === */
+  .rb-header { font-size: 14px; font-weight: 700; text-align: center; color: #f1f5f9; margin-bottom: 10px; }
+  .rb-group { margin-bottom: 10px; }
+  .rb-group-title { font-size: 11px; font-weight: 700; color: #60a5fa; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .rb-checks { display: flex; flex-wrap: wrap; gap: 4px; }
+  .rb-check {
+    display: flex; align-items: center; gap: 4px; background: #0f172a;
+    padding: 4px 8px; border-radius: 4px; font-size: 11px; color: #cbd5e1;
+    cursor: pointer; border: 1px solid #334155;
+  }
+  .rb-check input { cursor: pointer; }
+
+  .rb-selector-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .rb-selector-label { font-size: 12px; color: #94a3b8; white-space: nowrap; }
+  #rb-range-select { flex: 1; padding: 8px; background: #0f172a; color: #f8fafc; border: 1px solid #334155; border-radius: 6px; font-size: 12px; outline: none; }
+
+  .rb-range-name {
+    font-size: 18px; font-weight: 800; text-align: center; color: #60a5fa;
+    margin: 10px 0; padding: 10px; background: #0f172a; border-radius: 8px;
+  }
+
+  /* Кисти */
+  .rb-brushes { display: flex; gap: 6px; margin-bottom: 10px; }
+  .rb-brush-btn {
+    flex: 1; padding: 10px; border: 2px solid transparent; border-radius: 8px;
+    font-weight: 700; font-size: 12px; cursor: pointer; transition: all 0.15s;
+    background: #334155; color: #cbd5e1;
+  }
+  .rb-brush-btn[data-action="3bet"] { background: rgba(139, 92, 246, 0.2); color: #a78bfa; border-color: rgba(139, 92, 246, 0.3); }
+  .rb-brush-btn[data-action="call"] { background: rgba(245, 158, 11, 0.2); color: #f59e0b; border-color: rgba(245, 158, 11, 0.3); }
+  .rb-brush-btn.active[data-action="3bet"] { background: #8b5cf6; color: white; border-color: #8b5cf6; }
+  .rb-brush-btn.active[data-action="call"] { background: #f59e0b; color: white; border-color: #f59e0b; }
+  .rb-brush-btn.active[data-action="fold"] { background: #475569; color: white; border-color: #f1f5f9; }
+
+  .rb-grid {
+    display: grid; grid-template-columns: repeat(13, 1fr); gap: 3px;
+    margin-bottom: 10px; user-select: none; -webkit-user-select: none; touch-action: none;
+  }
+  .rb-cell {
+    aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+    font-size: 8px; font-weight: 700; border-radius: 3px; cursor: pointer;
+    color: #64748b; background: #0f172a; border: 1px solid #1e293b; transition: all 0.1s;
+  }
+  .rb-cell.pair { background: #1e293b; }
+  .rb-cell.marked-3bet { background: #8b5cf6; color: white; border-color: #8b5cf6; }
+  .rb-cell.marked-call { background: #f59e0b; color: white; border-color: #f59e0b; }
+  .rb-cell.correct { background: #10b981; color: white; border-color: #10b981; }
+  .rb-cell.extra { background: #ef4444; color: white; border-color: #ef4444; }
+  .rb-cell.missing { background: #f59e0b; color: white; border-color: #f59e0b; }
+
+  .rb-hint { font-size: 11px; color: #64748b; text-align: center; margin-bottom: 10px; font-style: italic; }
+
+  .rb-buttons { display: flex; gap: 8px; margin-bottom: 12px; }
+  .btn-rb-clear {
+    flex: 1; padding: 12px; background: #334155; color: #cbd5e1;
+    border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer;
+  }
+  .btn-rb-clear:hover:not(:disabled) { background: #475569; }
+  .btn-rb-check {
+    flex: 1; padding: 12px; background: #3b82f6; color: white;
+    border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer;
+  }
+  .btn-rb-check:hover:not(:disabled) { background: #2563eb; }
+  .btn-rb-clear:disabled, .btn-rb-check:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .rb-result { padding: 12px; background: #0f172a; border-radius: 8px; margin-bottom: 12px; text-align: center; }
+  .rb-result.hidden { display: none; }
+  .rb-score { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+  .rb-score.good { color: #10b981; }
+  .rb-score.mid { color: #f59e0b; }
+  .rb-score.bad { color: #ef4444; }
+  .rb-details { font-size: 12px; color: #94a3b8; margin-bottom: 8px; }
+  .rb-legend { display: flex; gap: 12px; justify-content: center; font-size: 11px; color: #94a3b8; flex-wrap: wrap; }
+  .rb-legend .dot { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
+
+  .rb-next-wrap { margin-bottom: 12px; }
+  .rb-next-wrap .btn-next { width: 100%; padding: 14px; border-radius: 10px; }
 
   .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; padding: 15px; z-index: 1000; overflow-y: auto; }
   .modal.open { display: flex; }
@@ -301,11 +287,11 @@
   .editor-tabs { display: flex; gap: 4px; margin-bottom: 12px; background: #0f172a; padding: 4px; border-radius: 8px; }
   .editor-tabs button { flex: 1; padding: 8px; border: none; background: transparent; color: #94a3b8; font-weight: 600; border-radius: 6px; cursor: pointer; font-size: 12px; }
   .editor-tabs button.active { background: #3b82f6; color: white; }
-  
+
   .editor-toolbar { display: flex; gap: 8px; margin-bottom: 12px; align-items: stretch; flex-wrap: wrap; }
   .editor-toolbar input[type="text"] { flex: 1; padding: 8px 12px; background: #0f172a; color: #f8fafc; border: 1px solid #334155; border-radius: 6px; font-size: 13px; min-width: 150px; }
   .editor-toolbar select { flex: 1; padding: 8px; background: #0f172a; color: #f8fafc; border: 1px solid #334155; border-radius: 6px; font-size: 12px; outline: none; min-width: 100px; }
-  
+
   .import-row { display: flex; gap: 6px; margin-bottom: 12px; width: 100%; }
   .import-row input { flex: 1; padding: 8px; background: #0f172a; color: #f8fafc; border: 1px solid #334155; border-radius: 6px; font-size: 12px; font-family: monospace; }
   .import-row button { padding: 8px 12px; background: #3b82f6; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px; }
@@ -336,9 +322,9 @@
 </head>
 <body>
 
-<div class="app">
-  <h1>🃏 Тренажер Чартов v8.4</h1>
-  <div class="subtitle">Cloud Sync · PWA · SRS · <span id="profile-badge">—</span></div>
+<div class="app" id="app">
+  <h1>🃏 Тренажер Чартов v8.5</h1>
+  <div class="subtitle">Cloud Sync · PWA · SRS · Game + 13×13 · <span id="profile-badge">—</span></div>
 
   <button class="settings-toggle" id="settings-toggle" onclick="toggleSettings()">
     <span id="settings-toggle-label">⚙️ Настройки</span>
@@ -391,48 +377,101 @@
     </div>
   </div>
 
-  <div class="score-bar">
-    <span>Точность: <strong id="accuracy">—</strong></span>
-    <span>Стрик: <strong id="streak">0</strong> / <strong id="best-streak">0</strong></span>
-    <span class="session-progress">Сессия: <strong id="session-progress">0/20</strong></span>
-    <span class="timer-display" id="timer-display">⏱ 60s</span>
-  </div>
+  <!-- ================= GAME VIEW ================= -->
+  <div id="game-view">
+    <div class="score-bar">
+      <span>Точность: <strong id="accuracy">—</strong></span>
+      <span>Стрик: <strong id="streak">0</strong> / <strong id="best-streak">0</strong></span>
+      <span class="session-progress">Сессия: <strong id="session-progress">0/20</strong></span>
+      <span class="timer-display" id="timer-display">⏱ 60s</span>
+    </div>
 
-  <div class="table-zone">
-    <div class="poker-table"></div>
-    <div id="opponents-container"></div>
+    <div class="table-zone">
+      <div class="poker-table"></div>
+      <div id="opponents-container"></div>
 
-    <div class="hero-seat-container">
-      <div class="hero-cards" id="hero-cards"></div>
-      <div class="hero-name" id="hero-pos-label">
-        <span id="hero-pos-text">BTN</span>
-        <div class="dealer-chip" id="hero-dealer-chip" style="display:none; top: -8px; right: -8px; bottom: auto;">D</div>
+      <div class="hero-seat-container">
+        <div class="hero-cards" id="hero-cards"></div>
+        <div class="hero-name" id="hero-pos-label">
+          <span id="hero-pos-text">BTN</span>
+          <div class="dealer-chip" id="hero-dealer-chip" style="display:none; top: -8px; right: -8px; bottom: auto;">D</div>
+        </div>
       </div>
+    </div>
+
+    <div class="feedback hidden" id="feedback">—</div>
+
+    <div class="action-buttons" id="actions">
+      <button class="btn-hint" id="btn-hint" onclick="showHint()">Подсказка</button>
+      <button class="btn-fold" id="btn-fold" onclick="answer('fold')">Фолд</button>
+      <button class="btn-call" id="btn-call" onclick="answer('call')" style="display:none;">Колл</button>
+      <button class="btn-raise" id="btn-raise" onclick="answer('raise')" style="display:none;">Рейз</button>
+      <button class="btn-3bet" id="btn-3bet" onclick="answer('3bet')" style="display:none;">3-Бет</button>
+      <button class="btn-skip" id="btn-skip" onclick="skip()">Пропуск</button>
+    </div>
+
+    <div class="answer-nav hidden" id="answer-nav">
+      <button class="btn-ranges-view" id="btn-ranges-view" onclick="toggleAnswerRanges()">📖 Ranges</button>
+      <button class="btn-next" id="btn-next" onclick="handleAnswerNext()">Далее →</button>
+    </div>
+
+    <div class="grid-wrap" id="grid-wrap" style="display:none;">
+      <div class="grid" id="grid"></div>
+      <div class="grid-legend" id="grid-legend"></div>
+      <div class="range-hint" id="range-hint"></div>
     </div>
   </div>
 
-  <div class="feedback hidden" id="feedback">—</div>
+  <!-- ================= RANGE BUILDER VIEW ================= -->
+  <div id="range-view" style="display:none;">
+    <div class="rb-header">🃏 13×13 — Сборка ренджей</div>
 
-  <div class="action-buttons" id="actions">
-    <button class="btn-hint" id="btn-hint" onclick="showHint()">Подсказка</button>
-    <button class="btn-fold" id="btn-fold" onclick="answer('fold')">Фолд</button>
-    <button class="btn-call" id="btn-call" onclick="answer('call')" style="display:none;">Колл</button>
-    <button class="btn-raise" id="btn-raise" onclick="answer('raise')" style="display:none;">Рейз</button>
-    <button class="btn-3bet" id="btn-3bet" onclick="answer('3bet')" style="display:none;">3-Бет</button>
-    <button class="btn-skip" id="btn-skip" onclick="skip()">Пропуск</button>
+    <button class="settings-toggle" id="rb-toggle" onclick="toggleRbPanel()">
+      <span id="rb-toggle-label">⚙️ Выбор ренджей</span>
+      <span class="settings-toggle-chevron">▼</span>
+    </button>
+
+    <div class="settings-panel" id="rb-panel">
+      <div class="rb-group">
+        <div class="rb-group-title">RFI</div>
+        <div class="rb-checks" id="rb-checks-rfi"></div>
+      </div>
+      <div class="rb-group">
+        <div class="rb-group-title">3-Bet</div>
+        <div class="rb-checks" id="rb-checks-3bet"></div>
+      </div>
+      <div class="rb-group">
+        <div class="rb-group-title">BB Defense</div>
+        <div class="rb-checks" id="rb-checks-bb"></div>
+      </div>
+    </div>
+
+    <div class="rb-selector-row">
+      <label for="rb-range-select" class="rb-selector-label">Тренируемый рендж:</label>
+      <select id="rb-range-select" onchange="rbChangeRange()"></select>
+    </div>
+
+    <div class="rb-range-name" id="rb-range-name">—</div>
+
+    <div class="rb-brushes" id="rb-brushes"></div>
+
+    <div class="rb-grid" id="rb-grid"></div>
+
+    <div class="rb-hint" id="rb-hint">Свайпом отметь руки. Для BB Defense: 🟣 3-Бет / 🟠 Колл. Затем «Проверить».</div>
+
+    <div class="rb-buttons">
+      <button class="btn-rb-clear" id="rb-clear-btn" onclick="rbClearAll()">Очистить всё</button>
+      <button class="btn-rb-check" id="rb-check-btn" onclick="rbCheck()">Проверить</button>
+    </div>
+
+    <div class="rb-result hidden" id="rb-result"></div>
+
+    <div class="rb-next-wrap" id="rb-next-wrap" style="display:none;">
+      <button class="btn-next" onclick="rbNext()">Далее →</button>
+    </div>
   </div>
 
-  <div class="answer-nav hidden" id="answer-nav">
-    <button class="btn-ranges-view" id="btn-ranges-view" onclick="toggleAnswerRanges()">📖 Ranges</button>
-    <button class="btn-next" id="btn-next" onclick="handleAnswerNext()">Далее →</button>
-  </div>
-
-  <div class="grid-wrap" id="grid-wrap" style="display:none;">
-    <div class="grid" id="grid"></div>
-    <div class="grid-legend" id="grid-legend"></div>
-    <div class="range-hint" id="range-hint"></div>
-  </div>
-
+  <!-- ================= TOOLS + MODE SWITCH ================= -->
   <div class="tools">
     <button onclick="showStats()">📊 Статистика</button>
     <button onclick="openSyncModal()">☁️ Синхронизация</button>
@@ -440,8 +479,14 @@
     <button onclick="document.getElementById('import-file').click()">📂 Импорт</button>
   </div>
   <input type="file" id="import-file" accept="application/json,.json" style="display:none" onchange="importAll(event)">
-  
+
+  <div class="mode-switch">
+    <button data-view="game" class="active" onclick="rbSwitchView('game')">Game</button>
+    <button data-view="range" onclick="rbSwitchView('range')">13×13</button>
+  </div>
+
   <div class="sync-status" id="sync-status">Облако не подключено</div>
+  <div class="powered-by">PoWeRed by DEEPSEEK for NaumZooL (As4Hi)</div>
 </div>
 
 <div class="modal" id="session-modal">
@@ -469,7 +514,7 @@
   <div class="modal-content">
     <h2>☁️ Синхронизация с облаком</h2>
     <p style="font-size: 12px; color: #94a3b8; margin-bottom: 16px;">Вставь Bin ID и API Key из твоего аккаунта JSONBin.io. Данные будут сохраняться в облаке и подтягиваться на всех устройствах.</p>
-    
+
     <div class="form-group">
       <label>Bin ID</label>
       <input type="text" id="sync-bin-id" placeholder="65f1a...">
@@ -478,7 +523,7 @@
       <label>X-Master-Key</label>
       <input type="password" id="sync-api-key" placeholder="$2b$10$...">
     </div>
-    
+
     <div class="modal-actions" style="margin-top: 20px;">
       <button class="danger" onclick="disconnectSync()">Отключить</button>
       <button class="secondary" onclick="document.getElementById('sync-modal').classList.remove('open')">Отмена</button>
@@ -490,7 +535,7 @@
 <div class="modal" id="editor-modal">
   <div class="modal-content">
     <h2>⚙️ Визуальный редактор</h2>
-    
+
     <div class="editor-toolbar">
       <input type="text" id="editor-profile-name" placeholder="Название базы">
       <button class="btn-icon secondary" onclick="duplicateEditorProfile()" title="Сохранить как копию">
@@ -529,7 +574,6 @@
 </div>
 
 <script>
-// ============ DEFAULT CHARTS ============
 const DEFAULT_CHARTS = {
   rfi: {
     'EP': '77+, ATs+, KTs+, QTs+, JTs, ATo+, KJo+',
@@ -554,7 +598,7 @@ const DEFAULT_CHARTS = {
   }
 };
 
-const APP_SCHEMA_VERSION = 8;
+const APP_SCHEMA_VERSION = 9;
 const CHARTS_KEY = 'chartTrainerData';
 const STATS_KEY = 'chartTrainerV6';
 const MISTAKES_KEY = 'chartTrainerMistakes';
@@ -564,14 +608,50 @@ const UI_PREFS_KEY = 'chartTrainerUIPrefs';
 
 let profiles = {};
 let activeProfileName = '';
-let stats = { correct: 0, total: 0, streak: 0, bestStreak: 0, byMode: { rfi: { t: 0, c: 0 }, '3bet': { t: 0, c: 0 }, bb: { t: 0, c: 0 } }, byKey: {} };
+let stats = {
+  correct: 0, total: 0, streak: 0, bestStreak: 0,
+  byMode: { rfi: { t: 0, c: 0 }, '3bet': { t: 0, c: 0 }, bb: { t: 0, c: 0 } },
+  byKey: {},
+  rangeBuilder: {
+    totalRanges: 0, totalSessions: 0, totalAccuracySum: 0,
+    byRange: {},
+    byGroup: {
+      rfi: { attempts: 0, accuracySum: 0 },
+      threeBet: { attempts: 0, accuracySum: 0 },
+      bbDef: { attempts: 0, accuracySum: 0 }
+    },
+    srs: {}
+  }
+};
 let sessionHistory = [];
 let mistakes = {};
 let syncConfig = { binId: '', apiKey: '' };
 let isSyncing = false;
 let syncTimeout = null;
 
-// ============ SETTINGS TOGGLE ============
+function ensureRangeBuilderStats() {
+  if (!stats.rangeBuilder || typeof stats.rangeBuilder !== 'object') {
+    stats.rangeBuilder = {
+      totalRanges: 0, totalSessions: 0, totalAccuracySum: 0,
+      byRange: {},
+      byGroup: {
+        rfi: { attempts: 0, accuracySum: 0 },
+        threeBet: { attempts: 0, accuracySum: 0 },
+        bbDef: { attempts: 0, accuracySum: 0 }
+      },
+      srs: {}
+    };
+    return;
+  }
+  const rb = stats.rangeBuilder;
+  if (!rb.byRange) rb.byRange = {};
+  if (!rb.byGroup) rb.byGroup = { rfi: { attempts: 0, accuracySum: 0 }, threeBet: { attempts: 0, accuracySum: 0 }, bbDef: { attempts: 0, accuracySum: 0 } };
+  if (!rb.srs) rb.srs = {};
+  if (typeof rb.totalRanges !== 'number') rb.totalRanges = 0;
+  if (typeof rb.totalAccuracySum !== 'number') rb.totalAccuracySum = 0;
+  if (typeof rb.totalSessions !== 'number') rb.totalSessions = 0;
+}
+
 function toggleSettings() {
   const panel = document.getElementById('settings-panel');
   const btn = document.getElementById('settings-toggle');
@@ -586,7 +666,6 @@ function toggleSettings() {
   } catch(e) {}
 }
 
-// ============ SYNC LOGIC ============
 function initSync() {
   const saved = localStorage.getItem(SYNC_KEY);
   if (saved) {
@@ -673,14 +752,14 @@ async function pullFromCloud() {
   if (!syncConfig.binId || !syncConfig.apiKey || isSyncing) return;
   isSyncing = true;
   document.getElementById('sync-status').textContent = '☁️ Загрузка...';
-  
+
   try {
     const res = await fetch(`https://api.jsonbin.io/v3/b/${syncConfig.binId}/latest`, {
       headers: { 'X-Master-Key': syncConfig.apiKey }
     });
     if (!res.ok) throw new Error('Ошибка сети');
     const json = await res.json();
-    
+
     if (json.record && Object.keys(json.record).length > 0) {
       if (json.record.schemaVersion && json.record.schemaVersion > APP_SCHEMA_VERSION) {
         alert('В облаке данные из более новой версии (' + json.record.schemaVersion + '). Обнови приложение, чтобы не потерять их.');
@@ -691,6 +770,7 @@ async function pullFromCloud() {
         if (json.record.mistakes) mistakes = json.record.mistakes;
         if (json.record.sessionHistory) sessionHistory = json.record.sessionHistory;
 
+        ensureRangeBuilderStats();
         localStorage.setItem(CHARTS_KEY, JSON.stringify(profiles));
         localStorage.setItem(STATS_KEY, JSON.stringify(stats));
         localStorage.setItem(MISTAKES_KEY, JSON.stringify(mistakes));
@@ -701,6 +781,7 @@ async function pullFromCloud() {
 
         renderProfileSelector();
         initRanges();
+        rbInit();
         updateSpotFilter();
         updateScoreDisplay();
         nextQuestion();
@@ -733,7 +814,7 @@ async function pushToCloud(force = false) {
       body: JSON.stringify(payload)
     });
     if (!res.ok) throw new Error('Ошибка отправки');
-    
+
     document.getElementById('sync-status').textContent = '☁️ Сохранено в облако';
     document.getElementById('sync-status').className = 'sync-status ok';
   } catch (err) {
@@ -752,7 +833,6 @@ function triggerSync() {
   }
 }
 
-// ============ LOCAL STORAGE ============
 function loadLocalData() {
   try {
     const savedProfiles = localStorage.getItem(CHARTS_KEY);
@@ -762,6 +842,7 @@ function loadLocalData() {
 
     const savedStats = localStorage.getItem(STATS_KEY);
     if (savedStats) stats = Object.assign(stats, JSON.parse(savedStats));
+    ensureRangeBuilderStats();
 
     const savedMistakes = localStorage.getItem(MISTAKES_KEY);
     if (savedMistakes) mistakes = JSON.parse(savedMistakes);
@@ -780,7 +861,6 @@ function saveLocally() {
   triggerSync();
 }
 
-// ============ RANGE EXPANDER ============
 const ranks = ['A','K','Q','J','T','9','8','7','6','5','4','3','2'];
 
 function expandRange(rangeStr) {
@@ -807,7 +887,7 @@ function expandRange(rangeStr) {
       if (plus) {
         if (suit === 's' || suit === 'o') { for (let i = i2; i > i1; i--) hands.add(r1 + ranks[i] + suit); }
         else { for (let i = i2; i > i1; i--) { hands.add(r1 + ranks[i] + 's'); hands.add(r1 + ranks[i] + 'o'); } }
-      } else { 
+      } else {
         if (suit === 's' || suit === 'o') { hands.add(r1 + r2 + suit); }
         else { hands.add(r1 + r2 + 's'); hands.add(r1 + r2 + 'o'); }
       }
@@ -877,7 +957,6 @@ function initRanges() {
   });
 }
 
-// ============ GAME LOGIC ============
 let sessionLength = 20;
 let speedInterval = 60;
 let sessionEnded = false;
@@ -915,14 +994,13 @@ function startSpeedTimer() {
   }, 1000);
 }
 
-// === СТОЛ ===
 const posOrder = ['EP', 'MP', 'CO', 'BTN', 'SB', 'BB'];
 
 function renderTableSeats(heroPos, openerPos) {
   const container = document.getElementById('opponents-container');
   container.innerHTML = '';
   const heroIdx = posOrder.indexOf(heroPos);
-  const rx = 46; 
+  const rx = 46;
   const ry = 42;
 
   for (let i = 1; i <= 5; i++) {
@@ -1000,7 +1078,7 @@ function nextQuestion() {
   let hand;
   const mistakeKeyPrefix = `${type}_${position}_`;
   const pool = Object.keys(mistakes).filter(k => k.startsWith(mistakeKeyPrefix) && mistakes[k] > 0);
-  
+
   if (srsMode && pool.length > 0 && Math.random() < 0.4) {
     const pickedKey = pickRandom(pool);
     hand = pickedKey.replace(mistakeKeyPrefix, '');
@@ -1028,7 +1106,7 @@ function nextQuestion() {
     currentQ = { type, position, hand, is3bet };
     document.getElementById('btn-fold').style.display = '';
     document.getElementById('btn-3bet').style.display = '';
-    heroPos = 'BB'; 
+    heroPos = 'BB';
     openerPos = position.replace('vs ', '');
   } else {
     const is3bet = BB_RANGES[position]['3bet'].has(hand);
@@ -1043,7 +1121,7 @@ function nextQuestion() {
 
   document.getElementById('hero-pos-text').textContent = heroPos;
   document.getElementById('hero-cards').innerHTML = displayHand(hand);
-  
+
   if (heroPos === 'BTN') {
     document.getElementById('hero-dealer-chip').style.display = 'flex';
   } else {
@@ -1090,7 +1168,7 @@ function buildRangeHintText(q, includeAnswer) {
   if (q.type === 'rfi') chartText = 'Чарт RFI ' + q.position + ': ' + currentRFI[q.position];
   else if (q.type === '3bet') chartText = 'Чарт 3-Bet ' + q.position + ': ' + current3BET[q.position];
   else chartText = 'BB ' + q.position + ' — 3bet: ' + currentBB[q.position]['3bet'] + ' | call: ' + (currentBB[q.position]['call'] === '__COMPUTED__' ? 'всё остальное' : currentBB[q.position]['call']);
-  
+
   if (includeAnswer) return 'Правильно: ' + getCorrectAction(q) + ' | ' + chartText;
   return chartText;
 }
@@ -1100,7 +1178,6 @@ function showHint() {
   const wrap = document.getElementById('grid-wrap');
   if (wrap.style.display === 'none') {
     renderGrid(currentQ);
-    // Hint не показывает текст ренджей — только сетку
     document.getElementById('range-hint').textContent = '';
     wrap.style.display = '';
     document.getElementById('btn-hint').textContent = 'Скрыть';
@@ -1115,7 +1192,6 @@ function toggleAnswerRanges() {
   const btn = document.getElementById('btn-ranges-view');
   if (wrap.style.display === 'none') {
     renderGrid(currentQ);
-    // Показываем текст ренджей только здесь
     document.getElementById('range-hint').textContent = buildRangeHintText(currentQ, true);
     wrap.style.display = '';
     btn.classList.add('active');
@@ -1190,7 +1266,6 @@ function answer(action) {
   const gridWrap = document.getElementById('grid-wrap');
   const rangesBtn = document.getElementById('btn-ranges-view');
   if (gridWrap.style.display !== 'none') {
-    // Сетка открыта через hint — закрываем, чтобы не мешала (юзер откроет через Ranges)
     gridWrap.style.display = 'none';
   }
   rangesBtn.classList.remove('active');
@@ -1211,7 +1286,7 @@ function skip() {
   document.getElementById('btn-skip').disabled = true;
   document.getElementById('btn-hint').disabled = true;
   document.getElementById('btn-hint').textContent = 'Подсказка';
-  
+
   const fb = document.getElementById('feedback');
   fb.classList.remove('hidden');
   fb.className = 'feedback skip';
@@ -1228,7 +1303,7 @@ function skip() {
   if (!stats.byKey[skipByKey]) stats.byKey[skipByKey] = { t: 0, c: 0 };
   stats.byKey[skipByKey].t++;
   saveLocally();
-  
+
   session.questions.push({ type: currentQ.type, position: currentQ.position, hand: currentQ.hand, correct: false, skipped: true });
   updateScoreDisplay();
 
@@ -1251,7 +1326,6 @@ function skip() {
   document.getElementById('answer-nav').classList.remove('hidden');
 }
 
-// ============ UI RENDERING ============
 function renderGrid(q) {
   const wrap = document.getElementById('grid-wrap'), grid = document.getElementById('grid'), legend = document.getElementById('grid-legend');
   grid.innerHTML = ''; legend.innerHTML = '';
@@ -1293,16 +1367,15 @@ function updateScoreDisplay() {
   document.getElementById('session-progress').textContent = session.questions.length + '/' + sessionLength;
 }
 
-// ============ SESSION SUMMARY ============
 function showSessionSummary(isSpeed = false) {
   if (sessionEnded) return;
   sessionEnded = true;
   if (speedTimer) { clearInterval(speedTimer); speedTimer = null; document.getElementById('timer-display').classList.remove('active'); }
-  
+
   const correct = session.questions.filter(q => q.correct).length;
   const total = session.questions.length;
   const acc = total > 0 ? Math.round(correct / total * 100) : 0;
-  
+
   if (total > 0) {
     sessionHistory.push({ date: new Date().toISOString(), acc, total });
     if (sessionHistory.length > 10) sessionHistory.shift();
@@ -1312,7 +1385,7 @@ function showSessionSummary(isSpeed = false) {
   let html = `<div class="stat-row"><span class="label">Точность</span><span class="val ${acc >= 80 ? 'good' : acc >= 60 ? 'mid' : 'bad'}">${acc}%</span></div>`;
   if (isSpeed) html = `<div class="stat-row"><span class="label">Режим Speed Drill</span><span class="val">${speedInterval} секунд</span></div>` + html;
   html += `<div class="stat-row"><span class="label">Правильно</span><span class="val">${correct} / ${total}</span></div>`;
-  
+
   if (currentSessionMistakes.length > 0) {
     html += `<div class="stat-row"><span class="label">Руки на повторение (SRS)</span><span class="val bad">${currentSessionMistakes.join(', ')}</span></div>`;
   }
@@ -1325,7 +1398,6 @@ function showSessionSummary(isSpeed = false) {
 function closeSession() { document.getElementById('session-modal').classList.remove('open'); session = { questions: [] }; currentSessionMistakes = []; updateScoreDisplay(); nextQuestion(); }
 function newSession() { document.getElementById('session-modal').classList.remove('open'); session = { questions: [] }; currentSessionMistakes = []; updateScoreDisplay(); nextQuestion(); }
 
-// ============ STATS & CHART ============
 function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 function showStats() {
@@ -1354,12 +1426,42 @@ function showStats() {
     <div class="chart-container"><canvas id="progress-chart"></canvas></div>
     <h3>По режимам</h3>
   `;
-  
+
   ['rfi', '3bet', 'bb'].forEach(m => {
     const s = stats.byMode[m] || { t: 0, c: 0 };
     const a = s.t > 0 ? Math.round(s.c / s.t * 100) : 0;
     html += `<div class="stat-row"><span class="label">${typeNames[m]}</span><span class="val ${s.t === 0 ? '' : a >= 80 ? 'good' : a >= 60 ? 'mid' : 'bad'}">${s.c} / ${s.t} ${s.t > 0 ? '(' + a + '%)' : ''}</span></div>`;
   });
+
+  const rb = stats.rangeBuilder || { totalRanges: 0, totalAccuracySum: 0, byRange: {}, byGroup: {}, srs: {} };
+  if (rb.totalRanges > 0) {
+    const avgAcc = Math.round((rb.totalAccuracySum / rb.totalRanges) * 100);
+    html += `<h3>Сборка ренджей (13×13)</h3>`;
+    html += `<div class="stat-row"><span class="label">Всего ренджей</span><span class="val">${rb.totalRanges}</span></div>`;
+    html += `<div class="stat-row"><span class="label">Средняя точность</span><span class="val ${avgAcc >= 80 ? 'good' : avgAcc >= 60 ? 'mid' : 'bad'}">${avgAcc}%</span></div>`;
+    const groupNames = { rfi: 'RFI', threeBet: '3-Bet', bbDef: 'BB Defense' };
+    Object.keys(groupNames).forEach(g => {
+      const gs = rb.byGroup && rb.byGroup[g];
+      if (gs && gs.attempts > 0) {
+        const a = Math.round((gs.accuracySum / gs.attempts) * 100);
+        html += `<div class="stat-row"><span class="label">${groupNames[g]}</span><span class="val ${a >= 80 ? 'good' : a >= 60 ? 'mid' : 'bad'}">${a}% (${gs.attempts})</span></div>`;
+      }
+    });
+    const worst = Object.keys(rb.byRange || {})
+      .filter(k => rb.byRange[k].attempts >= 1)
+      .sort((a, b) => (rb.byRange[a].accuracySum / rb.byRange[a].attempts) - (rb.byRange[b].accuracySum / rb.byRange[b].attempts))
+      .slice(0, 3);
+    if (worst.length > 0) {
+      html += `<h3>Худшие ренджи</h3>`;
+      worst.forEach(k => {
+        const r = rb.byRange[k];
+        const a = Math.round((r.accuracySum / r.attempts) * 100);
+        const rangeInfo = (typeof rbAvailableRanges !== 'undefined' ? rbAvailableRanges : []).find(rr => rr.key === k);
+        const label = rangeInfo ? rangeInfo.label : k;
+        html += `<div class="stat-row"><span class="label">${escapeHtml(label)}</span><span class="val bad">${a}% (${r.attempts})</span></div>`;
+      });
+    }
+  }
 
   document.getElementById('stats-content').innerHTML = html;
   document.getElementById('stats-modal').classList.add('open');
@@ -1428,7 +1530,6 @@ window.addEventListener('resize', () => {
   if (document.getElementById('stats-modal').classList.contains('open')) drawChart();
 });
 
-// ============ EDITOR LOGIC ============
 let editorData = {}, currentEditorTab = 'rfi', currentEditorPos = '', currentBrush = 'raise', editorOriginalName = '';
 
 function openEditor(isNew = false) {
@@ -1594,7 +1695,7 @@ function saveProfile() {
   const newName = document.getElementById('editor-profile-name').value.trim();
   if (!newName) return alert('Введите название профиля');
   if (profiles[newName] && newName !== editorOriginalName) { if (!confirm(`База "${newName}" существует. Перезаписать?`)) return; }
-  
+
   const newProfile = { rfi: {}, '3bet': {}, bb: {} };
   Object.keys(editorData.rfi).forEach(pos => newProfile.rfi[pos] = Array.from(editorData.rfi[pos]).join(', '));
   Object.keys(editorData['3bet']).forEach(pos => newProfile['3bet'][pos] = Array.from(editorData['3bet'][pos]).join(', '));
@@ -1608,7 +1709,7 @@ function saveProfile() {
   if (editorOriginalName && newName !== editorOriginalName) delete profiles[editorOriginalName];
   profiles[newName] = newProfile; activeProfileName = newName; editorOriginalName = newName;
 
-  saveLocally(); renderProfileSelector(); initRanges(); updateSpotFilter();
+  saveLocally(); renderProfileSelector(); initRanges(); rbInit(); updateSpotFilter();
   document.getElementById('editor-modal').classList.remove('open');
   session = { questions: [] }; updateScoreDisplay(); nextQuestion();
 }
@@ -1618,15 +1719,14 @@ function deleteProfile() {
   if (confirm('Удалить текущую базу?')) {
     delete profiles[activeProfileName];
     activeProfileName = Object.keys(profiles)[0];
-    saveLocally(); renderProfileSelector(); initRanges(); updateSpotFilter();
+    saveLocally(); renderProfileSelector(); initRanges(); rbInit(); updateSpotFilter();
     document.getElementById('editor-modal').classList.remove('open');
     session = { questions: [] }; updateScoreDisplay(); nextQuestion();
   }
 }
 
-// ============ EXPORT / IMPORT ============
 function exportAll() {
-  const payload = { app: 'chart-trainer', version: 'v8.4', schemaVersion: APP_SCHEMA_VERSION, exportedAt: new Date().toISOString(), profiles, activeProfileName, stats, mistakes, sessionHistory };
+  const payload = { app: 'chart-trainer', version: 'v8.5', schemaVersion: APP_SCHEMA_VERSION, exportedAt: new Date().toISOString(), profiles, activeProfileName, stats, mistakes, sessionHistory };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob); const d = new Date(); const pad = n => String(n).padStart(2, '0');
   const a = document.createElement('a'); a.href = url; a.download = `trainer_backup_${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}.json`;
@@ -1643,9 +1743,10 @@ function importAll(event) {
       if (parsed.profiles) {
         profiles = parsed.profiles; activeProfileName = parsed.activeProfileName || Object.keys(profiles)[0];
         if (parsed.stats) stats = Object.assign(stats, parsed.stats);
+        ensureRangeBuilderStats();
         if (parsed.mistakes) mistakes = parsed.mistakes;
         if (parsed.sessionHistory) sessionHistory = parsed.sessionHistory;
-        saveLocally(); renderProfileSelector(); initRanges(); updateSpotFilter();
+        saveLocally(); renderProfileSelector(); initRanges(); rbInit(); updateSpotFilter();
         session = { questions: [] }; updateScoreDisplay(); nextQuestion();
         alert('Данные успешно импортированы.');
       } else throw new Error('Неверный формат');
@@ -1655,7 +1756,6 @@ function importAll(event) {
   reader.readAsText(file);
 }
 
-// ============ INIT ============
 function renderProfileSelector() {
   const sel = document.getElementById('profile-selector');
   sel.innerHTML = '';
@@ -1669,7 +1769,7 @@ function renderProfileSelector() {
 }
 
 function changeProfile(name) {
-  activeProfileName = name; saveLocally(); initRanges(); updateSpotFilter();
+  activeProfileName = name; saveLocally(); initRanges(); rbInit(); updateSpotFilter();
   session = { questions: [] }; updateScoreDisplay(); nextQuestion();
 }
 
@@ -1748,7 +1848,6 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(err => console.log('SW registration failed:', err));
 }
 
-// ============ HARD MODE: BOUNDARY HANDS ============
 function getBoundaryHands(rangeSet) {
   const boundaries = new Set();
   for (let i = 0; i < 13; i++) {
@@ -1780,8 +1879,427 @@ function getBoundaryHands(rangeSet) {
   return Array.from(boundaries);
 }
 
-// Запуск
-loadLocalData(); loadUIPrefs(); initSync(); initRanges(); updateSpotFilter(); updateScoreDisplay(); nextQuestion();
+// ============ RANGE BUILDER (13×13) ============
+const RB_SRS_THRESHOLD = 0.8;
+const RB_SRS_PICK_PROB = 0.4;
+
+let rbView = 'game';
+let rbAvailableRanges = [];
+let rbSelectedKeys = [];
+let rbCurrentKey = '__MIX__';
+let rbCurrentRange = null;
+let rbAnswer = { '3bet': new Set(), call: new Set() };
+let rbBrush = '3bet';
+let rbChecked = false;
+let rbResult = null;
+let rbIsDrawing = false;
+let rbDrawState = '3bet';
+
+function toggleRbPanel() {
+  const panel = document.getElementById('rb-panel');
+  const btn = document.getElementById('rb-toggle');
+  const label = document.getElementById('rb-toggle-label');
+  const isOpen = panel.classList.toggle('open');
+  btn.classList.toggle('open', isOpen);
+  label.textContent = isOpen ? '⚙️ Скрыть выбор ренджей' : '⚙️ Выбор ренджей';
+}
+
+function rbSwitchView(view) {
+  rbView = view;
+  const app = document.getElementById('app');
+  if (view === 'range') {
+    app.classList.add('view-range');
+    document.getElementById('game-view').style.display = 'none';
+    document.getElementById('range-view').style.display = '';
+  } else {
+    app.classList.remove('view-range');
+    document.getElementById('game-view').style.display = '';
+    document.getElementById('range-view').style.display = 'none';
+  }
+  document.querySelectorAll('.mode-switch button').forEach(b => {
+    b.classList.toggle('active', b.dataset.view === view);
+  });
+}
+
+function rbBuildAvailableRanges() {
+  rbAvailableRanges = [];
+  Object.keys(RFI_RANGES).forEach(pos => {
+    rbAvailableRanges.push({
+      key: 'rfi_' + pos,
+      group: 'rfi',
+      label: 'RFI: ' + pos,
+      hands3bet: RFI_RANGES[pos],
+      handsCall: new Set()
+    });
+  });
+  Object.keys(THREEBET_RANGES).forEach(pos => {
+    rbAvailableRanges.push({
+      key: '3bet_' + pos,
+      group: 'threeBet',
+      label: '3-Bet: ' + pos,
+      hands3bet: THREEBET_RANGES[pos],
+      handsCall: new Set()
+    });
+  });
+  Object.keys(BB_RANGES).forEach(pos => {
+    rbAvailableRanges.push({
+      key: 'bb_' + pos,
+      group: 'bbDef',
+      label: 'BB Def: ' + pos,
+      hands3bet: BB_RANGES[pos]['3bet'],
+      handsCall: BB_RANGES[pos]['call']
+    });
+  });
+}
+
+function rbInit() {
+  ensureRangeBuilderStats();
+  rbBuildAvailableRanges();
+
+  let prefs = {};
+  try { prefs = JSON.parse(localStorage.getItem(UI_PREFS_KEY) || '{}'); } catch(e) {}
+  if (prefs.rbSelectedKeys && Array.isArray(prefs.rbSelectedKeys)) {
+    rbSelectedKeys = prefs.rbSelectedKeys.filter(k => rbAvailableRanges.some(r => r.key === k));
+  }
+  if (rbSelectedKeys.length === 0) {
+    rbSelectedKeys = rbAvailableRanges.map(r => r.key);
+  }
+
+  rbRenderCheckboxes();
+  rbRenderDropdown();
+
+  if (rbCurrentKey !== '__MIX__' && !rbSelectedKeys.includes(rbCurrentKey)) {
+    rbCurrentKey = '__MIX__';
+  }
+  rbNewQuestion();
+}
+
+function rbRenderCheckboxes() {
+  const groups = { rfi: 'rb-checks-rfi', threeBet: 'rb-checks-3bet', bbDef: 'rb-checks-bb' };
+  Object.keys(groups).forEach(g => {
+    const el = document.getElementById(groups[g]);
+    if (!el) return;
+    el.innerHTML = '';
+    rbAvailableRanges.filter(r => r.group === g).forEach(r => {
+      const checked = rbSelectedKeys.includes(r.key);
+      const lbl = document.createElement('label');
+      lbl.className = 'rb-check';
+      const inp = document.createElement('input');
+      inp.type = 'checkbox';
+      inp.dataset.key = r.key;
+      inp.checked = checked;
+      inp.addEventListener('change', rbToggleCheck);
+      const span = document.createElement('span');
+      span.textContent = r.label;
+      lbl.appendChild(inp); lbl.appendChild(span);
+      el.appendChild(lbl);
+    });
+  });
+}
+
+function rbToggleCheck(e) {
+  const key = e.target.dataset.key;
+  if (e.target.checked) {
+    if (!rbSelectedKeys.includes(key)) rbSelectedKeys.push(key);
+  } else {
+    if (rbSelectedKeys.length <= 1) {
+      e.target.checked = true;
+      return;
+    }
+    rbSelectedKeys = rbSelectedKeys.filter(k => k !== key);
+  }
+  rbSaveSelectedKeys();
+  rbRenderDropdown();
+  if (rbCurrentKey !== '__MIX__' && !rbSelectedKeys.includes(rbCurrentKey)) {
+    rbCurrentKey = '__MIX__';
+    rbNewQuestion();
+  }
+}
+
+function rbSaveSelectedKeys() {
+  try {
+    const prefs = JSON.parse(localStorage.getItem(UI_PREFS_KEY) || '{}');
+    prefs.rbSelectedKeys = rbSelectedKeys;
+    localStorage.setItem(UI_PREFS_KEY, JSON.stringify(prefs));
+  } catch(e) {}
+}
+
+function rbRenderDropdown() {
+  const sel = document.getElementById('rb-range-select');
+  if (!sel) return;
+  sel.innerHTML = '';
+  const mixOpt = document.createElement('option');
+  mixOpt.value = '__MIX__';
+  mixOpt.textContent = 'Микс (случайный)';
+  sel.appendChild(mixOpt);
+  rbAvailableRanges.filter(r => rbSelectedKeys.includes(r.key)).forEach(r => {
+    const opt = document.createElement('option');
+    opt.value = r.key;
+    opt.textContent = r.label;
+    sel.appendChild(opt);
+  });
+  if (rbCurrentKey !== '__MIX__' && rbSelectedKeys.includes(rbCurrentKey)) {
+    sel.value = rbCurrentKey;
+  } else {
+    sel.value = '__MIX__';
+  }
+}
+
+function rbChangeRange() {
+  const val = document.getElementById('rb-range-select').value;
+  rbCurrentKey = val;
+  rbNewQuestion();
+}
+
+function rbPickRange() {
+  if (rbCurrentKey && rbCurrentKey !== '__MIX__' && rbSelectedKeys.includes(rbCurrentKey)) {
+    const found = rbAvailableRanges.find(r => r.key === rbCurrentKey);
+    if (found) return found;
+  }
+  const srs = (stats.rangeBuilder && stats.rangeBuilder.srs) || {};
+  const srsKeys = Object.keys(srs).filter(k => rbSelectedKeys.includes(k) && srs[k] > 0);
+  if (srsKeys.length > 0 && Math.random() < RB_SRS_PICK_PROB) {
+    const total = srsKeys.reduce((s, k) => s + srs[k], 0);
+    let r = Math.random() * total;
+    for (const k of srsKeys) {
+      r -= srs[k];
+      if (r <= 0) return rbAvailableRanges.find(rr => rr.key === k);
+    }
+    return rbAvailableRanges.find(rr => rr.key === srsKeys[0]);
+  }
+  const candidates = rbAvailableRanges.filter(r => rbSelectedKeys.includes(r.key));
+  if (candidates.length === 0) return null;
+  return pickRandom(candidates);
+}
+
+function rbNewQuestion() {
+  const range = rbPickRange();
+  rbAnswer = { '3bet': new Set(), call: new Set() };
+  rbChecked = false;
+  rbResult = null;
+
+  const nameEl = document.getElementById('rb-range-name');
+  const gridEl = document.getElementById('rb-grid');
+  const resultEl = document.getElementById('rb-result');
+  const nextWrap = document.getElementById('rb-next-wrap');
+  const checkBtn = document.getElementById('rb-check-btn');
+  const clearBtn = document.getElementById('rb-clear-btn');
+
+  if (!range) {
+    rbCurrentRange = null;
+    if (nameEl) nameEl.textContent = 'Нет доступных ренджей';
+    if (gridEl) gridEl.innerHTML = '';
+    if (resultEl) resultEl.classList.add('hidden');
+    if (nextWrap) nextWrap.style.display = 'none';
+    if (checkBtn) checkBtn.disabled = true;
+    if (clearBtn) clearBtn.disabled = true;
+    return;
+  }
+
+  rbCurrentRange = range;
+  if (nameEl) nameEl.textContent = range.label;
+  if (resultEl) resultEl.classList.add('hidden');
+  if (nextWrap) nextWrap.style.display = 'none';
+  if (checkBtn) checkBtn.disabled = false;
+  if (clearBtn) clearBtn.disabled = false;
+
+  const sel = document.getElementById('rb-range-select');
+  if (sel) {
+    if (rbCurrentKey !== '__MIX__' && rbSelectedKeys.includes(rbCurrentKey)) {
+      sel.value = rbCurrentKey;
+    } else {
+      sel.value = '__MIX__';
+    }
+  }
+
+  updateRbBrushes();
+  rbRenderGrid();
+}
+
+function updateRbBrushes() {
+  const brushWrap = document.getElementById('rb-brushes');
+  if (!brushWrap) return;
+  brushWrap.innerHTML = '';
+  const group = rbCurrentRange ? rbCurrentRange.group : 'rfi';
+  if (group === 'rfi') {
+    brushWrap.innerHTML = `
+      <button class="rb-brush-btn active" data-action="3bet" onclick="setRbBrush('3bet', this)">Рейз</button>
+      <button class="rb-brush-btn" data-action="fold" onclick="setRbBrush('fold', this)">Фолд</button>
+    `;
+    rbBrush = '3bet';
+  } else if (group === 'threeBet') {
+    brushWrap.innerHTML = `
+      <button class="rb-brush-btn active" data-action="3bet" onclick="setRbBrush('3bet', this)">3-Бет</button>
+      <button class="rb-brush-btn" data-action="fold" onclick="setRbBrush('fold', this)">Фолд</button>
+    `;
+    rbBrush = '3bet';
+  } else {
+    brushWrap.innerHTML = `
+      <button class="rb-brush-btn active" data-action="3bet" onclick="setRbBrush('3bet', this)">3-Бет</button>
+      <button class="rb-brush-btn" data-action="call" onclick="setRbBrush('call', this)">Колл</button>
+      <button class="rb-brush-btn" data-action="fold" onclick="setRbBrush('fold', this)">Фолд</button>
+    `;
+    rbBrush = '3bet';
+  }
+}
+
+function setRbBrush(brush, btn) {
+  rbBrush = brush;
+  document.querySelectorAll('.rb-brush-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function rbRenderGrid() {
+  const grid = document.getElementById('rb-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  for (let i = 0; i < 13; i++) {
+    for (let j = 0; j < 13; j++) {
+      const r1 = ranks[i], r2 = ranks[j];
+      let handStr, cls;
+      if (i === j) { handStr = r1 + r2; cls = 'pair'; }
+      else if (i < j) { handStr = r1 + r2 + 's'; cls = 'suited'; }
+      else { handStr = r2 + r1 + 'o'; cls = 'offsuit'; }
+      const cell = document.createElement('div');
+      cell.className = 'rb-cell ' + cls;
+      cell.dataset.hand = handStr;
+      cell.textContent = handStr;
+      if (!rbChecked) {
+        if (rbAnswer['3bet'].has(handStr)) cell.classList.add('marked-3bet');
+        else if (rbAnswer['call'].has(handStr)) cell.classList.add('marked-call');
+      } else if (rbResult) {
+        if (rbResult.green.has(handStr)) cell.classList.add('correct');
+        else if (rbResult.red.has(handStr)) cell.classList.add('extra');
+        else if (rbResult.yellow.has(handStr)) cell.classList.add('missing');
+      }
+      cell.addEventListener('pointerdown', (e) => rbCellDown(e, handStr));
+      cell.addEventListener('pointerenter', () => rbCellEnter(handStr));
+      grid.appendChild(cell);
+    }
+  }
+}
+
+function rbCellDown(e, handStr) {
+  if (rbChecked) return;
+  e.preventDefault();
+  rbIsDrawing = true;
+  const isSameBrush = (rbBrush === '3bet' && rbAnswer['3bet'].has(handStr))
+                   || (rbBrush === 'call' && rbAnswer['call'].has(handStr));
+  rbDrawState = isSameBrush ? 'erase' : rbBrush;
+  rbApplyCell(handStr, rbDrawState);
+}
+
+function rbCellEnter(handStr) {
+  if (!rbIsDrawing || rbChecked) return;
+  rbApplyCell(handStr, rbDrawState);
+}
+
+function rbApplyCell(handStr, state) {
+  if (state === 'erase' || state === 'fold') {
+    rbAnswer['3bet'].delete(handStr);
+    rbAnswer['call'].delete(handStr);
+  } else if (state === '3bet') {
+    rbAnswer['3bet'].add(handStr);
+    rbAnswer['call'].delete(handStr);
+  } else if (state === 'call') {
+    rbAnswer['call'].add(handStr);
+    rbAnswer['3bet'].delete(handStr);
+  }
+  const cell = document.querySelector(`.rb-cell[data-hand="${handStr}"]`);
+  if (cell) {
+    cell.classList.remove('marked-3bet', 'marked-call');
+    if (rbAnswer['3bet'].has(handStr)) cell.classList.add('marked-3bet');
+    else if (rbAnswer['call'].has(handStr)) cell.classList.add('marked-call');
+  }
+}
+
+document.addEventListener('pointerup', () => { rbIsDrawing = false; });
+document.addEventListener('pointercancel', () => { rbIsDrawing = false; });
+
+function rbClearAll() {
+  if (rbChecked) return;
+  rbAnswer['3bet'].clear();
+  rbAnswer['call'].clear();
+  rbRenderGrid();
+}
+
+function rbCheck() {
+  if (rbChecked || !rbCurrentRange) return;
+  rbChecked = true;
+  const correct3bet = rbCurrentRange.hands3bet;
+  const correctCall = rbCurrentRange.handsCall;
+  const user3bet = rbAnswer['3bet'];
+  const userCall = rbAnswer['call'];
+
+  const green = new Set();
+  const red = new Set();
+  const yellow = new Set();
+
+  user3bet.forEach(h => { if (correct3bet.has(h)) green.add(h); else red.add(h); });
+  userCall.forEach(h => { if (correctCall.has(h)) green.add(h); else red.add(h); });
+  correct3bet.forEach(h => { if (!user3bet.has(h) && !userCall.has(h)) yellow.add(h); });
+  correctCall.forEach(h => { if (!user3bet.has(h) && !userCall.has(h)) yellow.add(h); });
+
+  const unionSet = new Set([...user3bet, ...userCall, ...correct3bet, ...correctCall]);
+  const unionSize = unionSet.size;
+  const accuracy = unionSize === 0 ? 1 : green.size / unionSize;
+  rbResult = { green, red, yellow, accuracy, unionSize };
+
+  rbRecordStats(rbCurrentRange, accuracy);
+  rbRenderGrid();
+
+  const resultEl = document.getElementById('rb-result');
+  const pct = Math.round(accuracy * 100);
+  const colorCls = accuracy >= RB_SRS_THRESHOLD ? 'good' : accuracy >= 0.6 ? 'mid' : 'bad';
+  resultEl.innerHTML = `
+    <div class="rb-score ${colorCls}">Совпало: ${green.size}/${unionSize} (${pct}%)</div>
+    <div class="rb-details">лишних: ${red.size} · пропущено: ${yellow.size}</div>
+    <div class="rb-legend">
+      <span><span class="dot" style="background:#10b981"></span>верно</span>
+      <span><span class="dot" style="background:#ef4444"></span>лишняя</span>
+      <span><span class="dot" style="background:#f59e0b"></span>пропущена</span>
+    </div>
+  `;
+  resultEl.classList.remove('hidden');
+  document.getElementById('rb-check-btn').disabled = true;
+  document.getElementById('rb-clear-btn').disabled = true;
+  document.getElementById('rb-next-wrap').style.display = '';
+}
+
+function rbRecordStats(range, accuracy) {
+  ensureRangeBuilderStats();
+  const rb = stats.rangeBuilder;
+  rb.totalRanges++;
+  rb.totalAccuracySum += accuracy;
+
+  if (!rb.byRange[range.key]) rb.byRange[range.key] = { attempts: 0, accuracySum: 0, lastAccuracy: 0, bestAccuracy: 0 };
+  const br = rb.byRange[range.key];
+  br.attempts++;
+  br.accuracySum += accuracy;
+  br.lastAccuracy = accuracy;
+  if (accuracy > br.bestAccuracy) br.bestAccuracy = accuracy;
+
+  if (!rb.byGroup[range.group]) rb.byGroup[range.group] = { attempts: 0, accuracySum: 0 };
+  rb.byGroup[range.group].attempts++;
+  rb.byGroup[range.group].accuracySum += accuracy;
+
+  if (accuracy < RB_SRS_THRESHOLD) {
+    rb.srs[range.key] = (rb.srs[range.key] || 0) + 1;
+  } else {
+    if (rb.srs[range.key]) {
+      rb.srs[range.key]--;
+      if (rb.srs[range.key] <= 0) delete rb.srs[range.key];
+    }
+  }
+
+  saveLocally();
+}
+
+function rbNext() {
+  rbNewQuestion();
+}
+
+loadLocalData(); loadUIPrefs(); initSync(); initRanges(); rbInit(); updateSpotFilter(); updateScoreDisplay(); nextQuestion();
 </script>
 </body>
 </html>
