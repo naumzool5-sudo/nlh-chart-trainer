@@ -15,13 +15,20 @@
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
     background: #0f172a; color: #f8fafc; min-height: 100vh;
-    display: flex; justify-content: center; align-items: flex-start; padding: 15px 10px;
+    display: flex; justify-content: center; align-items: flex-start; padding: 10px;
     touch-action: manipulation;
   }
   .app {
     width: 100%; max-width: 540px; background: #1e293b; border-radius: 16px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.5); padding: 20px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5); padding: 15px;
   }
+  
+  /* Mobile full-width and larger grid */
+  @media (max-width: 600px) {
+    body { padding: 0; }
+    .app { max-width: 100%; border-radius: 0; padding: 8px; min-height: 100vh; }
+  }
+
   h1 { font-size: 18px; font-weight: 700; text-align: center; margin-bottom: 4px; }
   .subtitle { font-size: 11px; text-align: center; color: #94a3b8; margin-bottom: 12px; }
   #profile-badge { color: #60a5fa; font-weight: 600; }
@@ -40,7 +47,9 @@
   .settings-panel.open { display: block; }
 
   .app.view-range > .settings-toggle,
-  .app.view-range > .settings-panel { display: none !important; }
+  .app.view-range > .settings-panel,
+  .app.view-range > h1,
+  .app.view-range > .subtitle { display: none !important; }
 
   .profile-bar { display: flex; gap: 6px; margin-bottom: 12px; align-items: stretch; }
   .profile-bar select {
@@ -210,9 +219,9 @@
   }
 
   /* Кисти */
-  .rb-brushes { display: flex; gap: 6px; margin-bottom: 10px; }
+  .rb-brushes { display: flex; gap: 6px; margin-bottom: 8px; }
   .rb-brush-btn {
-    flex: 1; padding: 10px; border: 2px solid transparent; border-radius: 8px;
+    flex: 1; padding: 8px; border: 2px solid transparent; border-radius: 8px;
     font-weight: 700; font-size: 12px; cursor: pointer; transition: all 0.15s;
     background: #334155; color: #cbd5e1;
   }
@@ -223,12 +232,12 @@
   .rb-brush-btn.active[data-action="fold"] { background: #475569; color: white; border-color: #f1f5f9; }
 
   .rb-grid {
-    display: grid; grid-template-columns: repeat(13, 1fr); gap: 3px;
-    margin-bottom: 10px; user-select: none; -webkit-user-select: none; touch-action: none;
+    display: grid; grid-template-columns: repeat(13, 1fr); gap: 1.5px;
+    margin-bottom: 8px; user-select: none; -webkit-user-select: none; touch-action: none;
   }
   .rb-cell {
     aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
-    font-size: 8px; font-weight: 700; border-radius: 3px; cursor: pointer;
+    font-size: 9.5px; font-weight: 700; border-radius: 3px; cursor: pointer;
     color: #64748b; background: #0f172a; border: 1px solid #1e293b; transition: all 0.1s;
   }
   .rb-cell.pair { background: #1e293b; }
@@ -238,33 +247,41 @@
   .rb-cell.extra { background: #ef4444; color: white; border-color: #ef4444; }
   .rb-cell.missing { background: #f59e0b; color: white; border-color: #f59e0b; }
 
-  .rb-hint { font-size: 11px; color: #64748b; text-align: center; margin-bottom: 10px; font-style: italic; }
+  .rb-hint { font-size: 11px; color: #64748b; text-align: center; margin-bottom: 8px; font-style: italic; }
 
-  .rb-buttons { display: flex; gap: 8px; margin-bottom: 12px; }
+  .rb-buttons { display: flex; gap: 8px; margin-bottom: 8px; }
   .btn-rb-clear {
-    flex: 1; padding: 12px; background: #334155; color: #cbd5e1;
+    flex: 1; padding: 10px; background: #334155; color: #cbd5e1;
     border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer;
   }
   .btn-rb-clear:hover:not(:disabled) { background: #475569; }
   .btn-rb-check {
-    flex: 1; padding: 12px; background: #3b82f6; color: white;
+    flex: 1; padding: 10px; background: #3b82f6; color: white;
     border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer;
   }
   .btn-rb-check:hover:not(:disabled) { background: #2563eb; }
   .btn-rb-clear:disabled, .btn-rb-check:disabled { opacity: 0.4; cursor: not-allowed; }
 
-  .rb-result { padding: 12px; background: #0f172a; border-radius: 8px; margin-bottom: 12px; text-align: center; }
+  .rb-result { padding: 12px; background: #0f172a; border-radius: 8px; margin-bottom: 8px; text-align: center; }
   .rb-result.hidden { display: none; }
-  .rb-score { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+  .rb-score { font-size: 18px; font-weight: 800; margin-bottom: 4px; }
   .rb-score.good { color: #10b981; }
   .rb-score.mid { color: #f59e0b; }
   .rb-score.bad { color: #ef4444; }
-  .rb-details { font-size: 12px; color: #94a3b8; margin-bottom: 8px; }
+  .rb-details { font-size: 12px; color: #94a3b8; margin-bottom: 6px; }
   .rb-legend { display: flex; gap: 12px; justify-content: center; font-size: 11px; color: #94a3b8; flex-wrap: wrap; }
   .rb-legend .dot { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
 
   .rb-next-wrap { margin-bottom: 12px; }
-  .rb-next-wrap .btn-next { width: 100%; padding: 14px; border-radius: 10px; }
+  .rb-next-wrap .btn-next { width: 100%; padding: 12px; border-radius: 10px; }
+
+  /* === Увеличение сетки в режиме 13×13 === */
+  .app.view-range {
+    padding: 4px;
+  }
+  .app.view-range .rb-header {
+    margin-bottom: 4px;
+  }
 
   .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; padding: 15px; z-index: 1000; overflow-y: auto; }
   .modal.open { display: flex; }
@@ -2226,8 +2243,24 @@ function rbClearAll() {
 function rbCheck() {
   if (rbChecked || !rbCurrentRange) return;
   rbChecked = true;
-  const correct3bet = rbCurrentRange.hands3bet;
-  const correctCall = rbCurrentRange.handsCall;
+
+  // --- ИСПРАВЛЕНИЕ: Жесткая привязка эталона к типу ренджа ---
+  let correct3bet, correctCall;
+  if (rbCurrentRange.group === 'rfi') {
+    const pos = rbCurrentRange.label.replace('RFI: ', '');
+    correct3bet = RFI_RANGES[pos];
+    correctCall = new Set();
+  } else if (rbCurrentRange.group === 'threeBet') {
+    const pos = rbCurrentRange.label.replace('3-Bet: ', '');
+    correct3bet = THREEBET_RANGES[pos];
+    correctCall = new Set();
+  } else {
+    const pos = rbCurrentRange.label.replace('BB Def: ', '');
+    correct3bet = BB_RANGES[pos]['3bet'];
+    correctCall = BB_RANGES[pos]['call'];
+  }
+  // -----------------------------------------------------------
+
   const user3bet = rbAnswer['3bet'];
   const userCall = rbAnswer['call'];
 
