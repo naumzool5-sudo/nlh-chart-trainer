@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Тренажер Чартов v8.3 — UX Update</title>
+<title>Тренажер Чартов v8.4 — Compact UI</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0f172a">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -23,7 +23,32 @@
     box-shadow: 0 10px 40px rgba(0,0,0,0.5); padding: 20px;
   }
   h1 { font-size: 18px; font-weight: 700; text-align: center; margin-bottom: 4px; }
-  .subtitle { font-size: 11px; text-align: center; color: #94a3b8; margin-bottom: 16px; }
+  .subtitle { font-size: 11px; text-align: center; color: #94a3b8; margin-bottom: 12px; }
+  #profile-badge { color: #60a5fa; font-weight: 600; }
+
+  /* === ТОГГЛ НАСТРОЕК === */
+  .settings-toggle {
+    width: 100%;
+    padding: 10px 14px;
+    background: #0f172a;
+    color: #94a3b8;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    transition: background 0.15s;
+  }
+  .settings-toggle:hover { background: #1e293b; }
+  .settings-toggle-chevron { transition: transform 0.2s; display: inline-block; font-size: 10px; }
+  .settings-toggle.open .settings-toggle-chevron { transform: rotate(180deg); }
+
+  .settings-panel { display: none; margin-bottom: 12px; }
+  .settings-panel.open { display: block; }
 
   .profile-bar { display: flex; gap: 6px; margin-bottom: 12px; align-items: stretch; }
   .profile-bar select {
@@ -38,6 +63,8 @@
   .btn-icon:hover { background: #2563eb; }
   .btn-icon.secondary { background: #475569; }
   .btn-icon.secondary:hover { background: #334155; }
+  .btn-icon.danger { background: #ef4444; }
+  .btn-icon.danger:hover { background: #dc2626; }
   .btn-icon svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 2.5; fill: none; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
   @media (max-width: 420px) { .btn-text { display: none; } .btn-icon { padding: 10px 12px; } }
 
@@ -187,8 +214,6 @@
     position: relative;
   }
 
-  .range-hint { font-size: 12px; color: #64748b; font-style: italic; margin-top: 10px; margin-bottom: 10px; text-align: center; min-height: 18px; }
-
   /* === КНОПКИ === */
   .action-buttons { display: flex; gap: 6px; margin-bottom: 10px; }
   .action-buttons button { flex: 1; padding: 14px 4px; border: none; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -243,6 +268,9 @@
   
   .grid-legend { display: flex; gap: 10px; font-size: 10px; color: #94a3b8; flex-wrap: wrap; justify-content: center; }
   .grid-legend .dot { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
+
+  .range-hint { font-size: 11px; color: #64748b; font-style: italic; margin-top: 10px; text-align: center; line-height: 1.4; }
+  .range-hint:empty { display: none; }
 
   .tools { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
   .tools button { flex: 1; min-width: 80px; padding: 8px; background: #334155; color: #cbd5e1; border: none; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; transition: background 0.15s; }
@@ -302,7 +330,6 @@
   .form-group label { display: block; font-size: 12px; color: #94a3b8; margin-bottom: 4px; }
   .form-group input { width: 100%; padding: 10px; background: #0f172a; color: #f8fafc; border: 1px solid #334155; border-radius: 6px; font-size: 13px; }
 
-  /* === АДАПТИВНЫЙ ГРАФИК === */
   .chart-container { width: 100%; overflow: hidden; }
   .chart-container canvas { display: block; width: 100%; height: auto; }
 </style>
@@ -310,51 +337,58 @@
 <body>
 
 <div class="app">
-  <h1>🃏 Тренажер Чартов v8.3</h1>
-  <div class="subtitle">Cloud Sync · PWA · SRS</div>
+  <h1>🃏 Тренажер Чартов v8.4</h1>
+  <div class="subtitle">Cloud Sync · PWA · SRS · <span id="profile-badge">—</span></div>
 
-  <div class="profile-bar">
-    <select id="profile-selector" onchange="changeProfile(this.value)"></select>
-    <button class="btn-icon" onclick="openEditor(true)" title="Создать новую базу">
-      <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-      <span class="btn-text">Создать</span>
-    </button>
-    <button class="btn-icon secondary" onclick="openEditor(false)" title="Редактировать текущую">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-      <span class="btn-text">Редактор</span>
-    </button>
-  </div>
+  <button class="settings-toggle" id="settings-toggle" onclick="toggleSettings()">
+    <span id="settings-toggle-label">⚙️ Настройки</span>
+    <span class="settings-toggle-chevron">▼</span>
+  </button>
 
-  <div class="controls">
-    <div class="modes">
-      <button data-mode="rfi" class="active">RFI</button>
-      <button data-mode="3bet">3-Bet</button>
-      <button data-mode="bb">BB Def</button>
-      <button data-mode="mix">Микс</button>
+  <div class="settings-panel" id="settings-panel">
+    <div class="profile-bar">
+      <select id="profile-selector" onchange="changeProfile(this.value)"></select>
+      <button class="btn-icon" onclick="openEditor(true)" title="Создать новую базу">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        <span class="btn-text">Создать</span>
+      </button>
+      <button class="btn-icon secondary" onclick="openEditor(false)" title="Редактировать текущую">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        <span class="btn-text">Редактор</span>
+      </button>
     </div>
-  </div>
 
-  <div class="filter-row">
-    <select id="spot-filter"><option value="all">Все позиции</option></select>
-    <label class="toggle-wrapper"><input type="checkbox" id="hard-mode"> Hard Mode</label>
-    <label class="toggle-wrapper"><input type="checkbox" id="srs-mode" checked> SRS</label>
-    <label class="toggle-wrapper"><input type="checkbox" id="speed-mode"> Speed</label>
-  </div>
+    <div class="controls">
+      <div class="modes">
+        <button data-mode="rfi" class="active">RFI</button>
+        <button data-mode="3bet">3-Bet</button>
+        <button data-mode="bb">BB Def</button>
+        <button data-mode="mix">Микс</button>
+      </div>
+    </div>
 
-  <div class="filter-row">
-    <select id="session-length" title="Количество раздач в сессии">
-      <option value="10">Сессия: 10 раздач</option>
-      <option value="20" selected>Сессия: 20 раздач</option>
-      <option value="30">Сессия: 30 раздач</option>
-      <option value="50">Сессия: 50 раздач</option>
-    </select>
-    <select id="speed-interval" style="display:none;" title="Интервал Speed Mode">
-      <option value="20">⏱ 20 сек</option>
-      <option value="30">⏱ 30 сек</option>
-      <option value="40">⏱ 40 сек</option>
-      <option value="50">⏱ 50 сек</option>
-      <option value="60" selected>⏱ 60 сек</option>
-    </select>
+    <div class="filter-row">
+      <select id="spot-filter"><option value="all">Все позиции</option></select>
+      <label class="toggle-wrapper"><input type="checkbox" id="hard-mode"> Hard Mode</label>
+      <label class="toggle-wrapper"><input type="checkbox" id="srs-mode" checked> SRS</label>
+      <label class="toggle-wrapper"><input type="checkbox" id="speed-mode"> Speed</label>
+    </div>
+
+    <div class="filter-row">
+      <select id="session-length" title="Количество раздач в сессии">
+        <option value="10">Сессия: 10 раздач</option>
+        <option value="20" selected>Сессия: 20 раздач</option>
+        <option value="30">Сессия: 30 раздач</option>
+        <option value="50">Сессия: 50 раздач</option>
+      </select>
+      <select id="speed-interval" style="display:none;" title="Интервал Speed Mode">
+        <option value="20">⏱ 20 сек</option>
+        <option value="30">⏱ 30 сек</option>
+        <option value="40">⏱ 40 сек</option>
+        <option value="50">⏱ 50 сек</option>
+        <option value="60" selected>⏱ 60 сек</option>
+      </select>
+    </div>
   </div>
 
   <div class="score-bar">
@@ -376,8 +410,6 @@
       </div>
     </div>
   </div>
-  
-  <div class="range-hint" id="range-hint"></div>
 
   <div class="feedback hidden" id="feedback">—</div>
 
@@ -398,6 +430,7 @@
   <div class="grid-wrap" id="grid-wrap" style="display:none;">
     <div class="grid" id="grid"></div>
     <div class="grid-legend" id="grid-legend"></div>
+    <div class="range-hint" id="range-hint"></div>
   </div>
 
   <div class="tools">
@@ -537,6 +570,21 @@ let mistakes = {};
 let syncConfig = { binId: '', apiKey: '' };
 let isSyncing = false;
 let syncTimeout = null;
+
+// ============ SETTINGS TOGGLE ============
+function toggleSettings() {
+  const panel = document.getElementById('settings-panel');
+  const btn = document.getElementById('settings-toggle');
+  const label = document.getElementById('settings-toggle-label');
+  const isOpen = panel.classList.toggle('open');
+  btn.classList.toggle('open', isOpen);
+  label.textContent = isOpen ? '⚙️ Скрыть настройки' : '⚙️ Настройки';
+  try {
+    const prefs = JSON.parse(localStorage.getItem(UI_PREFS_KEY) || '{}');
+    prefs.settingsOpen = isOpen;
+    localStorage.setItem(UI_PREFS_KEY, JSON.stringify(prefs));
+  } catch(e) {}
+}
 
 // ============ SYNC LOGIC ============
 function initSync() {
@@ -958,7 +1006,6 @@ function nextQuestion() {
     hand = pickedKey.replace(mistakeKeyPrefix, '');
   } else if (hardMode) {
     const boundary = getBoundaryHands(rangeSet);
-    // 65% пограничных / 35% обычных
     if (boundary.length > 0 && Math.random() < 0.65) {
       hand = pickRandom(boundary);
     } else {
@@ -1032,11 +1079,29 @@ function displayHand(handStr) {
   return makeMiniCard(r1, s1) + makeMiniCard(r2, s2);
 }
 
+function getCorrectAction(q) {
+  if (q.type === 'rfi') return q.isRaise ? 'RAISE' : 'FOLD';
+  if (q.type === '3bet') return q.is3bet ? '3-BET' : 'FOLD';
+  return q.is3bet ? '3-BET' : (q.isCall ? 'CALL' : 'FOLD');
+}
+
+function buildRangeHintText(q, includeAnswer) {
+  let chartText = '';
+  if (q.type === 'rfi') chartText = 'Чарт RFI ' + q.position + ': ' + currentRFI[q.position];
+  else if (q.type === '3bet') chartText = 'Чарт 3-Bet ' + q.position + ': ' + current3BET[q.position];
+  else chartText = 'BB ' + q.position + ' — 3bet: ' + currentBB[q.position]['3bet'] + ' | call: ' + (currentBB[q.position]['call'] === '__COMPUTED__' ? 'всё остальное' : currentBB[q.position]['call']);
+  
+  if (includeAnswer) return 'Правильно: ' + getCorrectAction(q) + ' | ' + chartText;
+  return chartText;
+}
+
 function showHint() {
   if (answered) return;
   const wrap = document.getElementById('grid-wrap');
   if (wrap.style.display === 'none') {
     renderGrid(currentQ);
+    // Hint не показывает текст ренджей — только сетку
+    document.getElementById('range-hint').textContent = '';
     wrap.style.display = '';
     document.getElementById('btn-hint').textContent = 'Скрыть';
   } else {
@@ -1050,6 +1115,8 @@ function toggleAnswerRanges() {
   const btn = document.getElementById('btn-ranges-view');
   if (wrap.style.display === 'none') {
     renderGrid(currentQ);
+    // Показываем текст ренджей только здесь
+    document.getElementById('range-hint').textContent = buildRangeHintText(currentQ, true);
     wrap.style.display = '';
     btn.classList.add('active');
     btn.textContent = '📖 Скрыть';
@@ -1115,12 +1182,6 @@ function answer(action) {
   fb.className = correct ? 'feedback correct' : 'feedback wrong';
   fb.textContent = correct ? `✅ Верно! Правильно: ${correctAction}` : `❌ Ошибка. Правильно: ${correctAction}`;
 
-  let hint = '';
-  if (currentQ.type === 'rfi') hint = 'Чарт RFI ' + currentQ.position + ': ' + currentRFI[currentQ.position];
-  else if (currentQ.type === '3bet') hint = 'Чарт 3-Bet ' + currentQ.position + ': ' + current3BET[currentQ.position];
-  else hint = 'BB ' + currentQ.position + ' — 3bet: ' + currentBB[currentQ.position]['3bet'] + ' | call: ' + (currentBB[currentQ.position]['call'] === '__COMPUTED__' ? 'всё остальное' : currentBB[currentQ.position]['call']);
-  document.getElementById('range-hint').textContent = hint;
-
   ['btn-fold', 'btn-call', 'btn-raise', 'btn-3bet'].forEach(id => document.getElementById(id).disabled = true);
 
   session.questions.push({ type: currentQ.type, position: currentQ.position, hand: currentQ.hand, correct });
@@ -1129,13 +1190,11 @@ function answer(action) {
   const gridWrap = document.getElementById('grid-wrap');
   const rangesBtn = document.getElementById('btn-ranges-view');
   if (gridWrap.style.display !== 'none') {
-    renderGrid(currentQ);
-    rangesBtn.classList.add('active');
-    rangesBtn.textContent = '📖 Скрыть';
-  } else {
-    rangesBtn.classList.remove('active');
-    rangesBtn.textContent = '📖 Ranges';
+    // Сетка открыта через hint — закрываем, чтобы не мешала (юзер откроет через Ranges)
+    gridWrap.style.display = 'none';
   }
+  rangesBtn.classList.remove('active');
+  rangesBtn.textContent = '📖 Ranges';
 
   const nextBtn = document.getElementById('btn-next');
   if (session.questions.length >= sessionLength) {
@@ -1158,16 +1217,6 @@ function skip() {
   fb.className = 'feedback skip';
   fb.textContent = '⏭ Пропущено.';
 
-  let correctAction = '';
-  if (currentQ.type === 'rfi') correctAction = currentQ.isRaise ? 'RAISE' : 'FOLD';
-  else if (currentQ.type === '3bet') correctAction = currentQ.is3bet ? '3-BET' : 'FOLD';
-  else correctAction = currentQ.is3bet ? '3-BET' : (currentQ.isCall ? 'CALL' : 'FOLD');
-
-  let hint = currentQ.type === 'rfi' ? currentRFI[currentQ.position] : (currentQ.type === '3bet' ? current3BET[currentQ.position] : 'см. сетку');
-  document.getElementById('range-hint').textContent = 'Правильно: ' + correctAction + ' | Чарт: ' + hint;
-  
-  ['btn-fold', 'btn-call', 'btn-raise', 'btn-3bet'].forEach(id => document.getElementById(id).disabled = true);
-
   stats.total++;
   stats.streak = 0;
   const skipKey = `${currentQ.type}_${currentQ.position}_${currentQ.hand}`;
@@ -1183,15 +1232,15 @@ function skip() {
   session.questions.push({ type: currentQ.type, position: currentQ.position, hand: currentQ.hand, correct: false, skipped: true });
   updateScoreDisplay();
 
+  ['btn-fold', 'btn-call', 'btn-raise', 'btn-3bet'].forEach(id => document.getElementById(id).disabled = true);
+
   const gridWrap = document.getElementById('grid-wrap');
   const rangesBtn = document.getElementById('btn-ranges-view');
   if (gridWrap.style.display !== 'none') {
-    rangesBtn.classList.add('active');
-    rangesBtn.textContent = '📖 Скрыть';
-  } else {
-    rangesBtn.classList.remove('active');
-    rangesBtn.textContent = '📖 Ranges';
+    gridWrap.style.display = 'none';
   }
+  rangesBtn.classList.remove('active');
+  rangesBtn.textContent = '📖 Ranges';
 
   const nextBtn = document.getElementById('btn-next');
   if (session.questions.length >= sessionLength) {
@@ -1577,7 +1626,7 @@ function deleteProfile() {
 
 // ============ EXPORT / IMPORT ============
 function exportAll() {
-  const payload = { app: 'chart-trainer', version: 'v8.3', schemaVersion: APP_SCHEMA_VERSION, exportedAt: new Date().toISOString(), profiles, activeProfileName, stats, mistakes, sessionHistory };
+  const payload = { app: 'chart-trainer', version: 'v8.4', schemaVersion: APP_SCHEMA_VERSION, exportedAt: new Date().toISOString(), profiles, activeProfileName, stats, mistakes, sessionHistory };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob); const d = new Date(); const pad = n => String(n).padStart(2, '0');
   const a = document.createElement('a'); a.href = url; a.download = `trainer_backup_${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}.json`;
@@ -1615,6 +1664,8 @@ function renderProfileSelector() {
     if (name === activeProfileName) opt.selected = true;
     sel.appendChild(opt);
   });
+  const badge = document.getElementById('profile-badge');
+  if (badge) badge.textContent = '📁 ' + activeProfileName;
 }
 
 function changeProfile(name) {
@@ -1630,6 +1681,11 @@ function loadUIPrefs() {
     speedMode = !!p.speedMode;
     if (p.sessionLength) sessionLength = p.sessionLength;
     if (p.speedInterval) speedInterval = p.speedInterval;
+    if (p.settingsOpen) {
+      document.getElementById('settings-panel').classList.add('open');
+      document.getElementById('settings-toggle').classList.add('open');
+      document.getElementById('settings-toggle-label').textContent = '⚙️ Скрыть настройки';
+    }
   } catch(e) {}
   document.getElementById('hard-mode').checked = hardMode;
   document.getElementById('srs-mode').checked = srsMode;
@@ -1638,8 +1694,17 @@ function loadUIPrefs() {
   document.getElementById('speed-interval').value = speedInterval;
   document.getElementById('speed-interval').style.display = speedMode ? '' : 'none';
 }
+
 function saveUIPrefs() {
-  localStorage.setItem(UI_PREFS_KEY, JSON.stringify({ hardMode, srsMode, speedMode, sessionLength, speedInterval }));
+  try {
+    const prefs = JSON.parse(localStorage.getItem(UI_PREFS_KEY) || '{}');
+    prefs.hardMode = hardMode;
+    prefs.srsMode = srsMode;
+    prefs.speedMode = speedMode;
+    prefs.sessionLength = sessionLength;
+    prefs.speedInterval = speedInterval;
+    localStorage.setItem(UI_PREFS_KEY, JSON.stringify(prefs));
+  } catch(e) {}
 }
 
 document.querySelectorAll('.modes button').forEach(btn => {
