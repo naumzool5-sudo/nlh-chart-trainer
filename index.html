@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Тренажер Чартов v8.2 — Cloud Sync</title>
+<title>Тренажер Чартов v8.3 — UX Update</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0f172a">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -58,7 +58,7 @@
   .timer-display { color: #f59e0b; font-weight: bold; display: none; }
   .timer-display.active { display: inline; }
 
-  /* === НОВЫЙ ДИЗАЙН СТОЛА === */
+  /* === ДИЗАЙН СТОЛА === */
   .table-zone {
     position: relative;
     width: 100%;
@@ -73,7 +73,7 @@
   .poker-table {
     width: 85%;
     height: 65%;
-    background: #152b22; /* Темно-зеленое сукно */
+    background: #152b22;
     border: 10px solid #2d3748;
     border-radius: 50% / 50%;
     position: absolute;
@@ -207,6 +207,29 @@
   .feedback.skip { background: rgba(148,163,184,0.15); color: #94a3b8; border: 1px solid rgba(148,163,184,0.3); }
   .feedback.hidden { visibility: hidden; }
 
+  /* === ПАНЕЛЬ RANGES / NEXT === */
+  .answer-nav {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .answer-nav.hidden { display: none; }
+  .answer-nav button {
+    flex: 1;
+    padding: 14px;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-ranges-view { background: #334155; color: #cbd5e1; }
+  .btn-ranges-view:hover { background: #475569; }
+  .btn-ranges-view.active { background: #10b981; color: white; }
+  .btn-next { background: #3b82f6; color: white; }
+  .btn-next:hover { background: #2563eb; }
+
   .grid-wrap { margin-bottom: 12px; }
   .grid { display: grid; grid-template-columns: repeat(13, 1fr); gap: 2px; margin-bottom: 8px; }
   .grid-cell { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 7.5px; font-weight: 700; border-radius: 2px; color: #64748b; overflow: hidden; line-height: 1; }
@@ -220,10 +243,6 @@
   
   .grid-legend { display: flex; gap: 10px; font-size: 10px; color: #94a3b8; flex-wrap: wrap; justify-content: center; }
   .grid-legend .dot { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
-
-  .next-btn { width: 100%; padding: 14px; background: #3b82f6; color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 700; cursor: pointer; transition: background 0.15s; margin-bottom: 12px; }
-  .next-btn:hover { background: #2563eb; }
-  .next-btn.hidden { display: none; }
 
   .tools { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
   .tools button { flex: 1; min-width: 80px; padding: 8px; background: #334155; color: #cbd5e1; border: none; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; transition: background 0.15s; }
@@ -282,12 +301,16 @@
   .form-group { margin-bottom: 12px; }
   .form-group label { display: block; font-size: 12px; color: #94a3b8; margin-bottom: 4px; }
   .form-group input { width: 100%; padding: 10px; background: #0f172a; color: #f8fafc; border: 1px solid #334155; border-radius: 6px; font-size: 13px; }
+
+  /* === АДАПТИВНЫЙ ГРАФИК === */
+  .chart-container { width: 100%; overflow: hidden; }
+  .chart-container canvas { display: block; width: 100%; height: auto; }
 </style>
 </head>
 <body>
 
 <div class="app">
-  <h1>🃏 Тренажер Чартов v8.2</h1>
+  <h1>🃏 Тренажер Чартов v8.3</h1>
   <div class="subtitle">Cloud Sync · PWA · SRS</div>
 
   <div class="profile-bar">
@@ -318,6 +341,22 @@
     <label class="toggle-wrapper"><input type="checkbox" id="speed-mode"> Speed</label>
   </div>
 
+  <div class="filter-row">
+    <select id="session-length" title="Количество раздач в сессии">
+      <option value="10">Сессия: 10 раздач</option>
+      <option value="20" selected>Сессия: 20 раздач</option>
+      <option value="30">Сессия: 30 раздач</option>
+      <option value="50">Сессия: 50 раздач</option>
+    </select>
+    <select id="speed-interval" style="display:none;" title="Интервал Speed Mode">
+      <option value="20">⏱ 20 сек</option>
+      <option value="30">⏱ 30 сек</option>
+      <option value="40">⏱ 40 сек</option>
+      <option value="50">⏱ 50 сек</option>
+      <option value="60" selected>⏱ 60 сек</option>
+    </select>
+  </div>
+
   <div class="score-bar">
     <span>Точность: <strong id="accuracy">—</strong></span>
     <span>Стрик: <strong id="streak">0</strong> / <strong id="best-streak">0</strong></span>
@@ -325,15 +364,12 @@
     <span class="timer-display" id="timer-display">⏱ 60s</span>
   </div>
 
-  <!-- НОВЫЙ БЛОК СТОЛА -->
   <div class="table-zone">
     <div class="poker-table"></div>
     <div id="opponents-container"></div>
 
     <div class="hero-seat-container">
-      <div class="hero-cards" id="hero-cards">
-        <!-- Сюда будут вставляться карты -->
-      </div>
+      <div class="hero-cards" id="hero-cards"></div>
       <div class="hero-name" id="hero-pos-label">
         <span id="hero-pos-text">BTN</span>
         <div class="dealer-chip" id="hero-dealer-chip" style="display:none; top: -8px; right: -8px; bottom: auto;">D</div>
@@ -354,12 +390,15 @@
     <button class="btn-skip" id="btn-skip" onclick="skip()">Пропуск</button>
   </div>
 
+  <div class="answer-nav hidden" id="answer-nav">
+    <button class="btn-ranges-view" id="btn-ranges-view" onclick="toggleAnswerRanges()">📖 Ranges</button>
+    <button class="btn-next" id="btn-next" onclick="handleAnswerNext()">Далее →</button>
+  </div>
+
   <div class="grid-wrap" id="grid-wrap" style="display:none;">
     <div class="grid" id="grid"></div>
     <div class="grid-legend" id="grid-legend"></div>
   </div>
-
-  <button class="next-btn hidden" id="next-btn" onclick="nextQuestion()">Следующая →</button>
 
   <div class="tools">
     <button onclick="showStats()">📊 Статистика</button>
@@ -372,7 +411,6 @@
   <div class="sync-status" id="sync-status">Облако не подключено</div>
 </div>
 
-<!-- Модальные окна остаются без изменений -->
 <div class="modal" id="session-modal">
   <div class="modal-content">
     <h2>🏁 Сессия завершена</h2>
@@ -792,7 +830,9 @@ function initRanges() {
 }
 
 // ============ GAME LOGIC ============
-const SESSION_LENGTH = 20;
+let sessionLength = 20;
+let speedInterval = 60;
+let sessionEnded = false;
 let mode = 'rfi', spotFilter = 'all', hardMode = false, srsMode = true, speedMode = false;
 let currentQ = null, answered = false, currentSessionMistakes = [];
 let session = { questions: [] };
@@ -811,7 +851,7 @@ function updateSpotFilter() {
 
 function startSpeedTimer() {
   if (speedTimer) clearInterval(speedTimer);
-  speedTimeLeft = 60;
+  speedTimeLeft = speedInterval;
   const display = document.getElementById('timer-display');
   display.classList.add('active');
   display.textContent = `⏱ ${speedTimeLeft}s`;
@@ -827,7 +867,7 @@ function startSpeedTimer() {
   }, 1000);
 }
 
-// === НОВАЯ ОТРИСОВКА СТОЛА ===
+// === СТОЛ ===
 const posOrder = ['EP', 'MP', 'CO', 'BTN', 'SB', 'BB'];
 
 function renderTableSeats(heroPos, openerPos) {
@@ -866,12 +906,20 @@ function renderTableSeats(heroPos, openerPos) {
 
 function nextQuestion() {
   answered = false;
+  sessionEnded = false;
   document.getElementById('feedback').classList.add('hidden');
-  document.getElementById('next-btn').classList.add('hidden');
+  document.getElementById('answer-nav').classList.add('hidden');
   document.getElementById('grid-wrap').style.display = 'none';
   document.getElementById('range-hint').textContent = '';
   document.getElementById('btn-skip').disabled = false;
   document.getElementById('btn-hint').disabled = false;
+  document.getElementById('btn-hint').textContent = 'Подсказка';
+
+  const rangesBtn = document.getElementById('btn-ranges-view');
+  if (rangesBtn) {
+    rangesBtn.classList.remove('active');
+    rangesBtn.textContent = '📖 Ranges';
+  }
 
   ['btn-fold', 'btn-call', 'btn-raise', 'btn-3bet'].forEach(id => {
     document.getElementById(id).disabled = false;
@@ -910,7 +958,12 @@ function nextQuestion() {
     hand = pickedKey.replace(mistakeKeyPrefix, '');
   } else if (hardMode) {
     const boundary = getBoundaryHands(rangeSet);
-    hand = boundary.length > 0 ? pickRandom(boundary) : pickRandom(ALL_HANDS);
+    // 65% пограничных / 35% обычных
+    if (boundary.length > 0 && Math.random() < 0.65) {
+      hand = pickRandom(boundary);
+    } else {
+      hand = pickRandom(ALL_HANDS);
+    }
   } else {
     hand = pickRandom(ALL_HANDS);
   }
@@ -941,7 +994,6 @@ function nextQuestion() {
     openerPos = position.replace('vs ', '');
   }
 
-  // Отрисовка нового стола
   document.getElementById('hero-pos-text').textContent = heroPos;
   document.getElementById('hero-cards').innerHTML = displayHand(hand);
   
@@ -954,7 +1006,6 @@ function nextQuestion() {
   renderTableSeats(heroPos, openerPos);
 }
 
-// === НОВОЕ ОТОБРАЖЕНИЕ КАРТ ===
 function displayHand(handStr) {
   const m = handStr.match(/^([AKQJT98765432])([AKQJT98765432])([so]?)$/);
   if (!m) return `<span>${handStr}</span>`;
@@ -991,6 +1042,29 @@ function showHint() {
   } else {
     wrap.style.display = 'none';
     document.getElementById('btn-hint').textContent = 'Подсказка';
+  }
+}
+
+function toggleAnswerRanges() {
+  const wrap = document.getElementById('grid-wrap');
+  const btn = document.getElementById('btn-ranges-view');
+  if (wrap.style.display === 'none') {
+    renderGrid(currentQ);
+    wrap.style.display = '';
+    btn.classList.add('active');
+    btn.textContent = '📖 Скрыть';
+  } else {
+    wrap.style.display = 'none';
+    btn.classList.remove('active');
+    btn.textContent = '📖 Ranges';
+  }
+}
+
+function handleAnswerNext() {
+  if (session.questions.length >= sessionLength) {
+    showSessionSummary();
+  } else {
+    nextQuestion();
   }
 }
 
@@ -1047,14 +1121,29 @@ function answer(action) {
   else hint = 'BB ' + currentQ.position + ' — 3bet: ' + currentBB[currentQ.position]['3bet'] + ' | call: ' + (currentBB[currentQ.position]['call'] === '__COMPUTED__' ? 'всё остальное' : currentBB[currentQ.position]['call']);
   document.getElementById('range-hint').textContent = hint;
 
-  renderGrid(currentQ);
   ['btn-fold', 'btn-call', 'btn-raise', 'btn-3bet'].forEach(id => document.getElementById(id).disabled = true);
 
   session.questions.push({ type: currentQ.type, position: currentQ.position, hand: currentQ.hand, correct });
   updateScoreDisplay();
 
-  if (session.questions.length >= SESSION_LENGTH) showSessionSummary();
-  else document.getElementById('next-btn').classList.remove('hidden');
+  const gridWrap = document.getElementById('grid-wrap');
+  const rangesBtn = document.getElementById('btn-ranges-view');
+  if (gridWrap.style.display !== 'none') {
+    renderGrid(currentQ);
+    rangesBtn.classList.add('active');
+    rangesBtn.textContent = '📖 Скрыть';
+  } else {
+    rangesBtn.classList.remove('active');
+    rangesBtn.textContent = '📖 Ranges';
+  }
+
+  const nextBtn = document.getElementById('btn-next');
+  if (session.questions.length >= sessionLength) {
+    nextBtn.textContent = '🏁 Завершить';
+  } else {
+    nextBtn.textContent = 'Далее →';
+  }
+  document.getElementById('answer-nav').classList.remove('hidden');
 }
 
 function skip() {
@@ -1077,7 +1166,6 @@ function skip() {
   let hint = currentQ.type === 'rfi' ? currentRFI[currentQ.position] : (currentQ.type === '3bet' ? current3BET[currentQ.position] : 'см. сетку');
   document.getElementById('range-hint').textContent = 'Правильно: ' + correctAction + ' | Чарт: ' + hint;
   
-  renderGrid(currentQ);
   ['btn-fold', 'btn-call', 'btn-raise', 'btn-3bet'].forEach(id => document.getElementById(id).disabled = true);
 
   stats.total++;
@@ -1094,9 +1182,24 @@ function skip() {
   
   session.questions.push({ type: currentQ.type, position: currentQ.position, hand: currentQ.hand, correct: false, skipped: true });
   updateScoreDisplay();
-  
-  if (session.questions.length >= SESSION_LENGTH) showSessionSummary();
-  else document.getElementById('next-btn').classList.remove('hidden');
+
+  const gridWrap = document.getElementById('grid-wrap');
+  const rangesBtn = document.getElementById('btn-ranges-view');
+  if (gridWrap.style.display !== 'none') {
+    rangesBtn.classList.add('active');
+    rangesBtn.textContent = '📖 Скрыть';
+  } else {
+    rangesBtn.classList.remove('active');
+    rangesBtn.textContent = '📖 Ranges';
+  }
+
+  const nextBtn = document.getElementById('btn-next');
+  if (session.questions.length >= sessionLength) {
+    nextBtn.textContent = '🏁 Завершить';
+  } else {
+    nextBtn.textContent = 'Далее →';
+  }
+  document.getElementById('answer-nav').classList.remove('hidden');
 }
 
 // ============ UI RENDERING ============
@@ -1138,11 +1241,13 @@ function updateScoreDisplay() {
   document.getElementById('accuracy').textContent = stats.total > 0 ? acc + '%' : '—';
   document.getElementById('streak').textContent = stats.streak;
   document.getElementById('best-streak').textContent = stats.bestStreak;
-  document.getElementById('session-progress').textContent = session.questions.length + '/' + SESSION_LENGTH;
+  document.getElementById('session-progress').textContent = session.questions.length + '/' + sessionLength;
 }
 
 // ============ SESSION SUMMARY ============
 function showSessionSummary(isSpeed = false) {
+  if (sessionEnded) return;
+  sessionEnded = true;
   if (speedTimer) { clearInterval(speedTimer); speedTimer = null; document.getElementById('timer-display').classList.remove('active'); }
   
   const correct = session.questions.filter(q => q.correct).length;
@@ -1156,7 +1261,7 @@ function showSessionSummary(isSpeed = false) {
   }
 
   let html = `<div class="stat-row"><span class="label">Точность</span><span class="val ${acc >= 80 ? 'good' : acc >= 60 ? 'mid' : 'bad'}">${acc}%</span></div>`;
-  if (isSpeed) html = `<div class="stat-row"><span class="label">Режим Speed Drill</span><span class="val">60 секунд</span></div>` + html;
+  if (isSpeed) html = `<div class="stat-row"><span class="label">Режим Speed Drill</span><span class="val">${speedInterval} секунд</span></div>` + html;
   html += `<div class="stat-row"><span class="label">Правильно</span><span class="val">${correct} / ${total}</span></div>`;
   
   if (currentSessionMistakes.length > 0) {
@@ -1165,7 +1270,7 @@ function showSessionSummary(isSpeed = false) {
 
   document.getElementById('session-summary').innerHTML = html;
   document.getElementById('session-modal').classList.add('open');
-  document.getElementById('next-btn').classList.add('hidden');
+  document.getElementById('answer-nav').classList.add('hidden');
 }
 
 function closeSession() { document.getElementById('session-modal').classList.remove('open'); session = { questions: [] }; currentSessionMistakes = []; updateScoreDisplay(); nextQuestion(); }
@@ -1197,7 +1302,7 @@ function showStats() {
     <h3>Твои слабые места (мин. 5 попыток)</h3>
     ${weakestHtml}
     <h3>График прогресса</h3>
-    <div class="chart-container"><canvas id="progress-chart" width="500" height="130"></canvas></div>
+    <div class="chart-container"><canvas id="progress-chart"></canvas></div>
     <h3>По режимам</h3>
   `;
   
@@ -1215,21 +1320,41 @@ function showStats() {
 function drawChart() {
   const canvas = document.getElementById('progress-chart');
   if (!canvas) return;
+  const container = canvas.parentElement;
+  const dpr = window.devicePixelRatio || 1;
+  const cssW = Math.max(200, container.clientWidth || 300);
+  const cssH = 130;
+  canvas.style.width = cssW + 'px';
+  canvas.style.height = cssH + 'px';
+  canvas.width = Math.round(cssW * dpr);
+  canvas.height = Math.round(cssH * dpr);
   const ctx = canvas.getContext('2d');
-  const w = canvas.width, h = canvas.height;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const w = cssW, h = cssH;
   ctx.clearRect(0, 0, w, h);
+
   const data = sessionHistory.slice(-7);
   if (data.length < 2) {
-    ctx.fillStyle = '#64748b'; ctx.font = '14px sans-serif'; ctx.textAlign = 'center';
-    ctx.fillText('Нужно сыграть минимум 2 сессии', w/2, h/2);
+    ctx.fillStyle = '#64748b';
+    ctx.font = '14px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Нужно сыграть минимум 2 сессии', w / 2, h / 2);
     return;
   }
-  const padding = 20, graphW = w - padding * 2, graphH = h - padding * 2;
+
+  const padding = 24;
+  const graphW = w - padding * 2;
+  const graphH = h - padding * 2;
   const stepX = graphW / (data.length - 1);
-  ctx.strokeStyle = '#334155'; ctx.lineWidth = 1;
+
+  ctx.strokeStyle = '#334155';
+  ctx.lineWidth = 1;
   ctx.beginPath(); ctx.moveTo(padding, padding); ctx.lineTo(padding, h - padding); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(padding, h - padding); ctx.lineTo(w - padding, h - padding); ctx.stroke();
-  ctx.strokeStyle = '#10b981'; ctx.lineWidth = 3; ctx.lineJoin = 'round';
+
+  ctx.strokeStyle = '#10b981';
+  ctx.lineWidth = 3;
+  ctx.lineJoin = 'round';
   ctx.beginPath();
   data.forEach((d, i) => {
     const x = padding + i * stepX;
@@ -1237,15 +1362,22 @@ function drawChart() {
     if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
   });
   ctx.stroke();
+
   data.forEach((d, i) => {
     const x = padding + i * stepX;
     const y = h - padding - (d.acc / 100) * graphH;
     ctx.fillStyle = '#10b981';
     ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#f1f5f9'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center';
-    ctx.fillText(d.acc + '%', x, y - 8);
+    ctx.fillStyle = '#f1f5f9';
+    ctx.font = '11px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(d.acc + '%', x, y - 10);
   });
 }
+
+window.addEventListener('resize', () => {
+  if (document.getElementById('stats-modal').classList.contains('open')) drawChart();
+});
 
 // ============ EDITOR LOGIC ============
 let editorData = {}, currentEditorTab = 'rfi', currentEditorPos = '', currentBrush = 'raise', editorOriginalName = '';
@@ -1445,7 +1577,7 @@ function deleteProfile() {
 
 // ============ EXPORT / IMPORT ============
 function exportAll() {
-  const payload = { app: 'chart-trainer', version: 'v8.2', schemaVersion: APP_SCHEMA_VERSION, exportedAt: new Date().toISOString(), profiles, activeProfileName, stats, mistakes, sessionHistory };
+  const payload = { app: 'chart-trainer', version: 'v8.3', schemaVersion: APP_SCHEMA_VERSION, exportedAt: new Date().toISOString(), profiles, activeProfileName, stats, mistakes, sessionHistory };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob); const d = new Date(); const pad = n => String(n).padStart(2, '0');
   const a = document.createElement('a'); a.href = url; a.download = `trainer_backup_${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}.json`;
@@ -1496,13 +1628,18 @@ function loadUIPrefs() {
     hardMode = !!p.hardMode;
     srsMode = p.srsMode !== false;
     speedMode = !!p.speedMode;
+    if (p.sessionLength) sessionLength = p.sessionLength;
+    if (p.speedInterval) speedInterval = p.speedInterval;
   } catch(e) {}
   document.getElementById('hard-mode').checked = hardMode;
   document.getElementById('srs-mode').checked = srsMode;
   document.getElementById('speed-mode').checked = speedMode;
+  document.getElementById('session-length').value = sessionLength;
+  document.getElementById('speed-interval').value = speedInterval;
+  document.getElementById('speed-interval').style.display = speedMode ? '' : 'none';
 }
 function saveUIPrefs() {
-  localStorage.setItem(UI_PREFS_KEY, JSON.stringify({ hardMode, srsMode, speedMode }));
+  localStorage.setItem(UI_PREFS_KEY, JSON.stringify({ hardMode, srsMode, speedMode, sessionLength, speedInterval }));
 }
 
 document.querySelectorAll('.modes button').forEach(btn => {
@@ -1516,7 +1653,31 @@ document.querySelectorAll('.modes button').forEach(btn => {
 document.getElementById('spot-filter').addEventListener('change', (e) => { spotFilter = e.target.value; session = { questions: [] }; updateScoreDisplay(); nextQuestion(); });
 document.getElementById('hard-mode').addEventListener('change', (e) => { hardMode = e.target.checked; saveUIPrefs(); nextQuestion(); });
 document.getElementById('srs-mode').addEventListener('change', (e) => { srsMode = e.target.checked; saveUIPrefs(); nextQuestion(); });
-document.getElementById('speed-mode').addEventListener('change', (e) => { speedMode = e.target.checked; saveUIPrefs(); session = { questions: [] }; nextQuestion(); });
+
+document.getElementById('speed-mode').addEventListener('change', (e) => {
+  speedMode = e.target.checked;
+  saveUIPrefs();
+  document.getElementById('speed-interval').style.display = speedMode ? '' : 'none';
+  session = { questions: [] };
+  updateScoreDisplay();
+  nextQuestion();
+});
+
+document.getElementById('session-length').addEventListener('change', (e) => {
+  sessionLength = parseInt(e.target.value, 10) || 20;
+  saveUIPrefs();
+  session = { questions: [] };
+  updateScoreDisplay();
+  nextQuestion();
+});
+
+document.getElementById('speed-interval').addEventListener('change', (e) => {
+  speedInterval = parseInt(e.target.value, 10) || 60;
+  saveUIPrefs();
+  session = { questions: [] };
+  updateScoreDisplay();
+  nextQuestion();
+});
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(err => console.log('SW registration failed:', err));
