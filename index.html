@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Тренажер Чартов v8.5 — Compact UI</title>
+<title>Тренажер Чартов v9.0 — Compact UI</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0f172a">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -340,7 +340,7 @@
 <body>
 
 <div class="app" id="app">
-  <h1>🃏 Тренажер Чартов v8.5</h1>
+  <h1>🃏 Тренажер Чартов v9.0</h1>
   <div class="subtitle">Cloud Sync · PWA · SRS · Game + 13×13 · <span id="profile-badge">—</span></div>
 
   <button class="settings-toggle" id="settings-toggle" onclick="toggleSettings()">
@@ -364,7 +364,8 @@
     <div class="controls">
       <div class="modes">
         <button data-mode="rfi" class="active">RFI</button>
-        <button data-mode="3bet">3-Bet</button>
+        <button data-mode="3bet_ip">3-Bet IP</button>
+        <button data-mode="3bet_oop">3-Bet OOP</button>
         <button data-mode="bb">BB Def</button>
         <button data-mode="mix">Микс</button>
       </div>
@@ -570,7 +571,8 @@
 
     <div class="editor-tabs">
       <button class="active" onclick="switchEditorTab('rfi', this)">RFI</button>
-      <button onclick="switchEditorTab('3bet', this)">3-Bet</button>
+      <button onclick="switchEditorTab('3bet_ip', this)">3-Bet IP</button>
+      <button onclick="switchEditorTab('3bet_oop', this)">3-Bet OOP</button>
       <button onclick="switchEditorTab('bb', this)">BB Defense</button>
     </div>
 
@@ -599,12 +601,18 @@ const DEFAULT_CHARTS = {
     'BTN': '22+, A2s+, K2s+, Q5s+, J7s+, T7s+, 96s+, 86s+, 75s+, 64s+, 54s, A2o+, K9o+, Q9o+, J9o+, T9o',
     'SB': '22+, A2s+, K7s+, Q8s+, J8s+, T7s+, 96s+, 86s+, 75s+, 64s+, 54s, A9o+, KTo+, QTo+, JTo'
   },
-  '3bet': {
-    'vs EP': 'QQ+, AKs, AKo',
-    'vs MP': 'JJ+, AKs, AKo, AQs',
-    'vs CO': 'TT+, AKs, AKo, AQs, AJs',
-    'vs BTN': '99+, AJs+, AQo+, KQs',
-    'vs SB': '66+, A8s+, ATo+, KTs+, KJo+, QTs+, QJo'
+  '3bet_ip': {
+    'CO vs EP': 'QQ+, AKs, AKo',
+    'CO vs MP': 'JJ+, AKs, AKo, AQs',
+    'BTN vs EP': 'QQ+, AKs, AKo, AQs',
+    'BTN vs MP': 'JJ+, AKs, AKo, AQs',
+    'BTN vs CO': 'TT+, AKs, AKo, AQs, AJs, KQs'
+  },
+  '3bet_oop': {
+    'SB vs EP': 'QQ+, AKs, AKo',
+    'SB vs MP': 'JJ+, AKs, AKo, AQs',
+    'SB vs CO': 'TT+, AKs, AKo, AQs, AJs',
+    'SB vs BTN': '99+, AJs+, AQo+, KQs'
   },
   bb: {
     'vs EP': { '3bet': 'QQ+, AK', 'call': '22-99, AQs-ATs, KQs, KJs, QJs, JTs, AQo, AJo, KQo' },
@@ -615,7 +623,7 @@ const DEFAULT_CHARTS = {
   }
 };
 
-const APP_SCHEMA_VERSION = 9;
+const APP_SCHEMA_VERSION = 10;
 const CHARTS_KEY = 'chartTrainerData';
 const STATS_KEY = 'chartTrainerV6';
 const MISTAKES_KEY = 'chartTrainerMistakes';
@@ -953,14 +961,18 @@ function setsEqual(a, b) {
   return true;
 }
 
-let RFI_RANGES = {}, THREEBET_RANGES = {}, BB_RANGES = {}, currentRFI = {}, current3BET = {}, currentBB = {};
+let RFI_RANGES = {}, THREEBET_IP_RANGES = {}, THREEBET_OOP_RANGES = {}, BB_RANGES = {}, currentRFI = {}, current3BET_IP = {}, current3BET_OOP = {}, currentBB = {};
 
 function initRanges() {
   const p = profiles[activeProfileName];
-  currentRFI = p.rfi || {}; current3BET = p['3bet'] || {}; currentBB = p.bb || {};
+  currentRFI = p.rfi || {}; 
+  current3BET_IP = (p['3bet_ip'] && Object.keys(p['3bet_ip']).length > 0) ? p['3bet_ip'] : DEFAULT_CHARTS['3bet_ip']; 
+  current3BET_OOP = (p['3bet_oop'] && Object.keys(p['3bet_oop']).length > 0) ? p['3bet_oop'] : DEFAULT_CHARTS['3bet_oop']; 
+  currentBB = p.bb || {};
 
   RFI_RANGES = {}; Object.keys(currentRFI).forEach(pos => RFI_RANGES[pos] = expandRange(currentRFI[pos]));
-  THREEBET_RANGES = {}; Object.keys(current3BET).forEach(pos => THREEBET_RANGES[pos] = expandRange(current3BET[pos]));
+  THREEBET_IP_RANGES = {}; Object.keys(current3BET_IP).forEach(pos => THREEBET_IP_RANGES[pos] = expandRange(current3BET_IP[pos]));
+  THREEBET_OOP_RANGES = {}; Object.keys(current3BET_OOP).forEach(pos => THREEBET_OOP_RANGES[pos] = expandRange(current3BET_OOP[pos]));
 
   BB_RANGES = {};
   Object.keys(currentBB).forEach(pos => {
@@ -988,7 +1000,8 @@ function updateSpotFilter() {
   const sel = document.getElementById('spot-filter');
   sel.innerHTML = '<option value="all">Все позиции</option>';
   if (mode === 'rfi' || mode === 'mix') Object.keys(currentRFI).forEach(pos => sel.innerHTML += `<option value="rfi_${pos}">RFI: ${pos}</option>`);
-  if (mode === '3bet' || mode === 'mix') Object.keys(current3BET).forEach(pos => sel.innerHTML += `<option value="3bet_${pos}">3-Bet: ${pos}</option>`);
+  if (mode === '3bet_ip' || mode === 'mix') Object.keys(current3BET_IP).forEach(pos => sel.innerHTML += `<option value="3bet_ip_${pos}">3-Bet IP: ${pos}</option>`);
+  if (mode === '3bet_oop' || mode === 'mix') Object.keys(current3BET_OOP).forEach(pos => sel.innerHTML += `<option value="3bet_oop_${pos}">3-Bet OOP: ${pos}</option>`);
   if (mode === 'bb' || mode === 'mix') Object.keys(currentBB).forEach(pos => sel.innerHTML += `<option value="bb_${pos}">BB Def: ${pos}</option>`);
   sel.value = 'all'; spotFilter = 'all';
 }
@@ -1072,7 +1085,7 @@ function nextQuestion() {
   if (session.questions.length === 0 && speedMode) startSpeedTimer();
   if (!speedMode && speedTimer) { clearInterval(speedTimer); speedTimer = null; document.getElementById('timer-display').classList.remove('active'); }
 
-  let type = mode === 'mix' ? pickRandom(['rfi', '3bet', 'bb']) : mode;
+  let type = mode === 'mix' ? pickRandom(['rfi', '3bet_ip', '3bet_oop', 'bb']) : mode;
   let position = '';
 
   if (spotFilter !== 'all') {
@@ -1084,9 +1097,12 @@ function nextQuestion() {
   if (type === 'rfi') {
     if (!position) position = pickRandom(Object.keys(RFI_RANGES));
     rangeSet = RFI_RANGES[position];
-  } else if (type === '3bet') {
-    if (!position) position = pickRandom(Object.keys(THREEBET_RANGES));
-    rangeSet = THREEBET_RANGES[position];
+  } else if (type === '3bet_ip') {
+    if (!position) position = pickRandom(Object.keys(THREEBET_IP_RANGES));
+    rangeSet = THREEBET_IP_RANGES[position];
+  } else if (type === '3bet_oop') {
+    if (!position) position = pickRandom(Object.keys(THREEBET_OOP_RANGES));
+    rangeSet = THREEBET_OOP_RANGES[position];
   } else {
     if (!position) position = pickRandom(Object.keys(BB_RANGES));
     rangeSet = new Set([...BB_RANGES[position]['3bet'], ...BB_RANGES[position]['call']]);
@@ -1118,14 +1134,7 @@ function nextQuestion() {
     currentQ = { type, position, hand, isRaise };
     document.getElementById('btn-fold').style.display = '';
     document.getElementById('btn-raise').style.display = '';
-  } else if (type === '3bet') {
-    const is3bet = rangeSet.has(hand);
-    currentQ = { type, position, hand, is3bet };
-    document.getElementById('btn-fold').style.display = '';
-    document.getElementById('btn-3bet').style.display = '';
-    heroPos = 'BB';
-    openerPos = position.replace('vs ', '');
-  } else {
+  } else if (type === 'bb') {
     const is3bet = BB_RANGES[position]['3bet'].has(hand);
     const isCall = BB_RANGES[position]['call'].has(hand);
     currentQ = { type, position, hand, is3bet, isCall };
@@ -1134,6 +1143,16 @@ function nextQuestion() {
     document.getElementById('btn-3bet').style.display = '';
     heroPos = 'BB';
     openerPos = position.replace('vs ', '');
+  } else {
+    // 3-Bet IP or OOP
+    const is3bet = rangeSet.has(hand);
+    currentQ = { type, position, hand, is3bet };
+    document.getElementById('btn-fold').style.display = '';
+    document.getElementById('btn-3bet').style.display = '';
+    
+    const parts = position.split(' vs ');
+    heroPos = parts[0];
+    openerPos = parts[1];
   }
 
   document.getElementById('hero-pos-text').textContent = heroPos;
@@ -1183,7 +1202,8 @@ function getCorrectAction(q) {
 function buildRangeHintText(q, includeAnswer) {
   let chartText = '';
   if (q.type === 'rfi') chartText = 'Чарт RFI ' + q.position + ': ' + currentRFI[q.position];
-  else if (q.type === '3bet') chartText = 'Чарт 3-Bet ' + q.position + ': ' + current3BET[q.position];
+  else if (q.type === '3bet_ip') chartText = 'Чарт 3-Bet IP ' + q.position + ': ' + current3BET_IP[q.position];
+  else if (q.type === '3bet_oop') chartText = 'Чарт 3-Bet OOP ' + q.position + ': ' + current3BET_OOP[q.position];
   else chartText = 'BB ' + q.position + ' — 3bet: ' + currentBB[q.position]['3bet'] + ' | call: ' + (currentBB[q.position]['call'] === '__COMPUTED__' ? 'всё остальное' : currentBB[q.position]['call']);
 
   if (includeAnswer) return 'Правильно: ' + getCorrectAction(q) + ' | ' + chartText;
@@ -1348,7 +1368,8 @@ function renderGrid(q) {
   grid.innerHTML = ''; legend.innerHTML = '';
   let raiseSet, callSet, raiseLabel;
   if (q.type === 'rfi') { raiseSet = RFI_RANGES[q.position]; callSet = new Set(); raiseLabel = 'Рейз'; }
-  else if (q.type === '3bet') { raiseSet = THREEBET_RANGES[q.position]; callSet = new Set(); raiseLabel = '3-Бет'; }
+  else if (q.type === '3bet_ip') { raiseSet = THREEBET_IP_RANGES[q.position]; callSet = new Set(); raiseLabel = '3-Бет IP'; }
+  else if (q.type === '3bet_oop') { raiseSet = THREEBET_OOP_RANGES[q.position]; callSet = new Set(); raiseLabel = '3-Бет OOP'; }
   else { raiseSet = BB_RANGES[q.position]['3bet']; callSet = BB_RANGES[q.position]['call']; raiseLabel = '3-Бет'; }
 
   for (let i = 0; i < 13; i++) {
@@ -1551,18 +1572,28 @@ let editorData = {}, currentEditorTab = 'rfi', currentEditorPos = '', currentBru
 
 function openEditor(isNew = false) {
   if (isNew) {
-    editorData = { rfi: {}, '3bet': {}, bb: {} };
+    editorData = { rfi: {}, '3bet_ip': {}, '3bet_oop': {}, bb: {} };
     Object.keys(DEFAULT_CHARTS.rfi).forEach(pos => editorData.rfi[pos] = new Set());
-    Object.keys(DEFAULT_CHARTS['3bet']).forEach(pos => editorData['3bet'][pos] = new Set());
+    Object.keys(DEFAULT_CHARTS['3bet_ip']).forEach(pos => editorData['3bet_ip'][pos] = new Set());
+    Object.keys(DEFAULT_CHARTS['3bet_oop']).forEach(pos => editorData['3bet_oop'][pos] = new Set());
     Object.keys(DEFAULT_CHARTS.bb).forEach(pos => editorData.bb[pos] = { '3bet': new Set(), 'call': new Set() });
     document.getElementById('editor-profile-name').value = 'Новый профиль';
     editorOriginalName = '';
   } else {
     editorOriginalName = activeProfileName;
-    editorData = { rfi: {}, '3bet': {}, bb: {} };
+    editorData = { rfi: {}, '3bet_ip': {}, '3bet_oop': {}, bb: {} };
     const p = profiles[activeProfileName];
     Object.keys(p.rfi || {}).forEach(pos => editorData.rfi[pos] = expandRange(p.rfi[pos]));
-    Object.keys(p['3bet'] || {}).forEach(pos => editorData['3bet'][pos] = expandRange(p['3bet'][pos]));
+    
+    // Фоллбэк для 3bet_ip: если в старом профиле нет этих данных, берем дефолтные
+    let ipData = p['3bet_ip'];
+    if (!ipData || Object.keys(ipData).length === 0) ipData = DEFAULT_CHARTS['3bet_ip'];
+    Object.keys(ipData || {}).forEach(pos => editorData['3bet_ip'][pos] = expandRange(ipData[pos]));
+
+    // Фоллбэк для 3bet_oop
+    let oopData = p['3bet_oop'];
+    if (!oopData || Object.keys(oopData).length === 0) oopData = DEFAULT_CHARTS['3bet_oop'];
+    Object.keys(oopData || {}).forEach(pos => editorData['3bet_oop'][pos] = expandRange(oopData[pos]));
     Object.keys(p.bb || {}).forEach(pos => {
       const def = p.bb[pos];
       const threeset = expandRange(def['3bet']);
@@ -1615,7 +1646,11 @@ function switchEditorTab(tab, btn) {
   btn.classList.add('active');
   const posSelect = document.getElementById('editor-pos-select');
   posSelect.innerHTML = '';
-  let positions = tab === 'rfi' ? Object.keys(editorData.rfi) : (tab === '3bet' ? Object.keys(editorData['3bet']) : Object.keys(editorData.bb));
+  let positions;
+  if (tab === 'rfi') positions = Object.keys(editorData.rfi);
+  else if (tab === '3bet_ip') positions = Object.keys(editorData['3bet_ip']);
+  else if (tab === '3bet_oop') positions = Object.keys(editorData['3bet_oop']);
+  else positions = Object.keys(editorData.bb);
   positions.forEach(pos => { const opt = document.createElement('option'); opt.value = pos; opt.textContent = pos; posSelect.appendChild(opt); });
   currentEditorPos = positions[0];
   posSelect.value = currentEditorPos;
@@ -1631,7 +1666,7 @@ function updateBrushes() {
   if (currentEditorTab === 'rfi') {
     brushWrap.innerHTML = `<button class="brush-btn active" data-action="raise" onclick="setBrush('raise', this)">Рейз</button><button class="brush-btn" data-action="fold" onclick="setBrush('fold', this)">Фолд</button>`;
     currentBrush = 'raise';
-  } else if (currentEditorTab === '3bet') {
+  } else if (currentEditorTab === '3bet_ip' || currentEditorTab === '3bet_oop') {
     brushWrap.innerHTML = `<button class="brush-btn active" data-action="3bet" onclick="setBrush('3bet', this)">3-Бет</button><button class="brush-btn" data-action="fold" onclick="setBrush('fold', this)">Фолд</button>`;
     currentBrush = '3bet';
   } else {
@@ -1662,7 +1697,8 @@ function renderEditorGrid() {
       else { handStr = r2 + r1 + 'o'; cls = 'offsuit'; }
       let actionCls = '';
       if (currentEditorTab === 'rfi') { if (editorData.rfi[currentEditorPos].has(handStr)) actionCls = 'in-raise'; }
-      else if (currentEditorTab === '3bet') { if (editorData['3bet'][currentEditorPos].has(handStr)) actionCls = 'in-3bet'; }
+      else if (currentEditorTab === '3bet_ip') { if (editorData['3bet_ip'][currentEditorPos].has(handStr)) actionCls = 'in-3bet'; }
+      else if (currentEditorTab === '3bet_oop') { if (editorData['3bet_oop'][currentEditorPos].has(handStr)) actionCls = 'in-3bet'; }
       else {
         if (editorData.bb[currentEditorPos]['3bet'].has(handStr)) actionCls = 'in-3bet';
         else if (editorData.bb[currentEditorPos]['call'].has(handStr)) actionCls = 'in-call';
@@ -1682,7 +1718,7 @@ function toggleEditorCell(handStr) {
     const set = editorData.rfi[currentEditorPos];
     if (currentBrush === 'raise') set.has(handStr) ? set.delete(handStr) : set.add(handStr);
     else if (currentBrush === 'fold') set.delete(handStr);
-  } else if (currentEditorTab === '3bet') {
+  } else if (currentEditorTab === '3bet_ip' || currentEditorTab === '3bet_oop') {
     const set = editorData['3bet'][currentEditorPos];
     if (currentBrush === '3bet') set.has(handStr) ? set.delete(handStr) : set.add(handStr);
     else if (currentBrush === 'fold') set.delete(handStr);
@@ -1713,9 +1749,10 @@ function saveProfile() {
   if (!newName) return alert('Введите название профиля');
   if (profiles[newName] && newName !== editorOriginalName) { if (!confirm(`База "${newName}" существует. Перезаписать?`)) return; }
 
-  const newProfile = { rfi: {}, '3bet': {}, bb: {} };
+  const newProfile = { rfi: {}, '3bet_ip': {}, '3bet_oop': {}, bb: {} };
   Object.keys(editorData.rfi).forEach(pos => newProfile.rfi[pos] = Array.from(editorData.rfi[pos]).join(', '));
-  Object.keys(editorData['3bet']).forEach(pos => newProfile['3bet'][pos] = Array.from(editorData['3bet'][pos]).join(', '));
+  Object.keys(editorData['3bet_ip']).forEach(pos => newProfile['3bet_ip'][pos] = Array.from(editorData['3bet_ip'][pos]).join(', '));
+  Object.keys(editorData['3bet_oop']).forEach(pos => newProfile['3bet_oop'][pos] = Array.from(editorData['3bet_oop'][pos]).join(', '));
   Object.keys(editorData.bb).forEach(pos => {
     const data = editorData.bb[pos];
     const expected = computeBBCall(data['3bet']);
@@ -1743,7 +1780,7 @@ function deleteProfile() {
 }
 
 function exportAll() {
-  const payload = { app: 'chart-trainer', version: 'v8.5', schemaVersion: APP_SCHEMA_VERSION, exportedAt: new Date().toISOString(), profiles, activeProfileName, stats, mistakes, sessionHistory };
+  const payload = { app: 'chart-trainer', version: 'v9.0', schemaVersion: APP_SCHEMA_VERSION, exportedAt: new Date().toISOString(), profiles, activeProfileName, stats, mistakes, sessionHistory };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob); const d = new Date(); const pad = n => String(n).padStart(2, '0');
   const a = document.createElement('a'); a.href = url; a.download = `trainer_backup_${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}.json`;
@@ -1949,12 +1986,21 @@ function rbBuildAvailableRanges() {
       handsCall: new Set()
     });
   });
-  Object.keys(THREEBET_RANGES).forEach(pos => {
+  Object.keys(THREEBET_IP_RANGES).forEach(pos => {
     rbAvailableRanges.push({
-      key: '3bet_' + pos,
+      key: '3bet_ip_' + pos,
       group: 'threeBet',
-      label: '3-Bet: ' + pos,
-      hands3bet: THREEBET_RANGES[pos],
+      label: '3-Bet IP: ' + pos,
+      hands3bet: THREEBET_IP_RANGES[pos],
+      handsCall: new Set()
+    });
+  });
+  Object.keys(THREEBET_OOP_RANGES).forEach(pos => {
+    rbAvailableRanges.push({
+      key: '3bet_oop_' + pos,
+      group: 'threeBet',
+      label: '3-Bet OOP: ' + pos,
+      hands3bet: THREEBET_OOP_RANGES[pos],
       handsCall: new Set()
     });
   });
@@ -2251,8 +2297,11 @@ function rbCheck() {
     correct3bet = RFI_RANGES[pos];
     correctCall = new Set();
   } else if (rbCurrentRange.group === 'threeBet') {
-    const pos = rbCurrentRange.label.replace('3-Bet: ', '');
-    correct3bet = THREEBET_RANGES[pos];
+    if (rbCurrentRange.label.startsWith('3-Bet IP: ')) {
+      correct3bet = THREEBET_IP_RANGES[rbCurrentRange.label.replace('3-Bet IP: ', '')];
+    } else {
+      correct3bet = THREEBET_OOP_RANGES[rbCurrentRange.label.replace('3-Bet OOP: ', '')];
+    }
     correctCall = new Set();
   } else {
     const pos = rbCurrentRange.label.replace('BB Def: ', '');
